@@ -1,2 +1,2 @@
 # HubitatBridge
-Enables a bridge between Indigo to Hubitat.
+Enables a bridge between Indigo and Hubitat.
