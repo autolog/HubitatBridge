@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+<Devices>
+    <!-- Hubitat Elevation Hub -->
+    <Device id="hubitatElevationHub"  type="custom">
+        <Name>Hubitat Elevation Hub</Name>
+        <ConfigUI>
+            <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
+            <Field id="header-1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+                <Label>Hubitat Hub</Label>
+            </Field>
+            <Field id="space-1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+            <Field id="hub_name" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+                <Label>Hubitat Elevation (HE) Name:</Label>
+            </Field>
+            <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+                <Label>^ Must be the Hub Name as recorded in the THE HE MQTT Broker Settings.</Label>
+            </Field>
+            <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+            <Field id="mqtt_broker_ip" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+                <Label>MQTT Broker IP Address:</Label>
+            </Field>
+            <Field id="help-2" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+                <Label>^ Must be the MQTT Broker IP Address as recorded in the THE HE MQTT Broker Settings.</Label>
+            </Field>
+            <Field id="space-3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+            <Field id="mqtt_broker_port" type="textfield"  defaultValue="1883" alwaysUseInDialogHeightCalc="true">
+                <Label>MQTT Broker Port Address:</Label>
+            </Field>
+            <Field id="help-3" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+                <Label>^ Must be the MQTT Broker Port Address as recorded in the THE HE MQTT Broker Settings.</Label>
+            </Field>
+
+		</ConfigUI>
+        <States>
+            <State id="heartbeat">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>MQTT Heartbeat changed</TriggerLabel>
+                <ControlPageLabel>MQTT Heartbeat</ControlPageLabel>
+            </State>
+            <State id="lastPayload">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Payload changed</TriggerLabel>
+                <ControlPageLabel>Last Payload</ControlPageLabel>
+            </State>
+            <State id="lastTopic">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Topic changed</TriggerLabel>
+                <ControlPageLabel>Last Topic</ControlPageLabel>
+            </State>
+            <State id="status">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Status changed</TriggerLabel>
+                <ControlPageLabel>Status</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>status</UiDisplayStateId>
+	</Device>
+
+    <!-- Button -->
+    <Device id="button"  type="custom">
+        <Name>Scene (Button)</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_properties.xml" />
+		</ConfigUI>
+        <UiDisplayStateId>lastButtonPressed</UiDisplayStateId>
+    </Device>
+
+    <!-- Contact Sensor -->
+    <Device id="contactSensor"  type="sensor">
+        <Name>Contact Sensor</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Dimmer -->
+	<Device id="dimmer" type="dimmer">
+        <Name>Dimmer (Light)</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Motion Sensor -->
+    <Device id="motionSensor"  type="sensor">
+        <Name>Motion Sensor</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Multi-Sensor -->
+    <Device id="multiSensor"  type="sensor">
+        <Name>Multi-Sensor</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Outlet (Socket) -->
+    <Device id="outlet"  type="relay">
+        <Name>Outlet (Socket)</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Temperature Sensor -->
+	<Device id="temperatureSensor" type="thermostat">
+        <Name>Temperature Sensor</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Thermostat -->
+	<Device id="thermostat" type="thermostat">
+        <Name>Thermostat</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Sub-Models [Secondary Devices in a Device Group] Follow Below -->
+
+    <!-- Acceleration Sensor [Sub-Model] -->
+    <Device id="accelerationSensorSubModel"  type="sensor">
+        <Name>Acceleration Sensor [Sub-Model]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+        <UiDisplayStateId>acceleration</UiDisplayStateId>
+	</Device>
+
+    <!-- Illuminance Sensor [Sub-Model] -->
+    <Device id="illuminanceSensorSubModel"  type="sensor">
+        <Name>Illuminance Sensor [Sub-Model]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+        <UiDisplayStateId>illuminance</UiDisplayStateId>
+	</Device>
+
+    <!-- Motion Sensor [Sub-Model] -->
+    <Device id="motionSensorSubModel"  type="sensor">
+        <Name>Motion Sensor [Sub-Model]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+        <UiDisplayStateId>motion</UiDisplayStateId>
+	</Device>
+
+    <!-- Pressure Sensor [Sub-Model] -->
+    <Device id="pressureSensorSubModel"  type="sensor">
+        <Name>Pressure Sensor [Sub-Model2]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Temperature Sensor [Sub-Model] -->
+    <Device id="temperatureSensorSubModel"  type="thermostat">
+        <Name>Temperature Sensor [Sub-Model]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Valve [Sub-Model] -->
+    <Device id="valveSubModel" type="dimmer">
+        <Name>Thermostat Valve [Sub-Model]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Voltage [Sub-Model] -->
+    <Device id="voltageSubModel" type="sensor">
+        <Name>Voltage [Sub-Model]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+	</Device>
+</Devices>

@@ -1,0 +1,731 @@
+<?xml version="1.0"?>
+
+<Template>
+
+<!-- Hubitat Properties   -->
+    <Field id="hubitatPropertiesInitialised" type="checkbox" defaultValue="false" hidden="true" />
+
+    <Field id="hubitatPropertyAcceleration" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyBattery" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyButton" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyColor" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyColorName" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyColorTemperature" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyContact" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyDim" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyEnergy" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyHumidity" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyHvacMode" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyHvacState" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyIlluminance" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyMotion" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyOnOff" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyPower" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyPresence" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyPressure" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertySetpoint" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyState" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyTemperature" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyValve" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyVoltage" type="checkbox" defaultValue="false" hidden="true" />
+
+<!-- Indigo Properties   -->
+    <Field id="primaryIndigoDevice" type="textfield" defaultValue="1" hidden="true"/>
+
+
+    <Field id="NumHumidityInputs" type="textfield" defaultValue="1" hidden="true"/>
+    <Field id="NumTemperatureInputs" type="textfield" defaultValue="1" hidden="true"/>
+    <Field id="ShowCoolHeatEquipmentStateUI" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsBatteryLevel" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="SupportsColor" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsCoolSetpoint" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsEnergyMeter" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsEnergyMeterCurPower" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsHeatSetpoint" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsHvacFanMode" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsHvacOperationMode" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden="true" />
+    <Field id="SupportsRGB" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="SupportsTwoWhiteLevels" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsWhite" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="SupportsWhiteTemperature" type="checkbox" defaultValue="false" hidden="true"/>
+    <Field id="supportsTemperatureReporting" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="supportsValve" type="checkbox" defaultValue="false" hidden="true"/>
+
+<!-- User Selectable Properties - Visibility set dependant on Hubitat Properties enabled  -->
+
+
+    <!-- Acceleration -->
+    <Field id="space-header-uspAcceleration" type="label"
+           visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspAcceleration" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true">>
+        <Label>Acceleration</Label>
+    </Field>
+    <Field id="uspAcceleration" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true">
+        <Label>Acceleration:</Label>
+        <Description>Associated with Hubitat 'acceleration' Property</Description>
+    </Field>
+    <Field id="uspAccelerationIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspAccelerationIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspAcceleration" visibleBindingValue="true" enabledBindingId="uspAccelerationIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="accelerationSensor" method="listDeviceStateMenuOptions"/>
+    </Field>
+    <Field id="space-uspAcceleration" type="label"
+           visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspAcceleration" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true"/>
+
+    <!-- Button -->
+    <Field id="space-header-uspButton" type="label"
+           visibleBindingId="hubitatPropertyButton" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspButton" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyButton" visibleBindingValue="true">>
+        <Label>Button</Label>
+    </Field>
+    <Field id="uspButtonEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspButton" type="checkbox" defaultValue="false" enabledBindingId="uspButtonEnabled"
+            visibleBindingId="hubitatPropertyButton" visibleBindingValue="true">
+        <Label>Scene [Button]:</Label>
+        <Description>Associated with Hubitat 'button' Property</Description>
+    </Field>
+    <Field id="uspButtonIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspButtonIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspButton" visibleBindingValue="true" enabledBindingId="uspButtonIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="button" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field type="menu" id="uspNumberOfButtons" defaultValue="1"
+            visibleBindingId="uspButton" visibleBindingValue="true">
+        <Label>Number of Buttons:</Label>
+        <List>
+            <Option value="1">One Button</Option>
+            <Option value="2">Two Buttons</Option>
+            <Option value="3">Three Buttons</Option>
+            <Option value="4">Four Buttons</Option>
+            <Option value="5">Five Buttons</Option>
+            <Option value="6">Six Buttons</Option>
+        </List>
+    </Field>
+    <Field id="space-uspButton" type="label"
+           visibleBindingId="hubitatPropertyButton" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspButton" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyButton" visibleBindingValue="true"/>
+
+    <!-- Contact -->
+    <Field id="space-header-uspContact" type="label"
+           visibleBindingId="hubitatPropertyContact" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspContact" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyContact" visibleBindingValue="true">>
+        <Label>Contact</Label>
+    </Field>
+    <Field id="uspContact" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyContact" visibleBindingValue="true">
+        <Label>Contact:</Label>
+        <Description>Associated with Hubitat 'contact' Property</Description>
+    </Field>
+    <Field id="uspContactIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspContactIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspContact" visibleBindingValue="true" enabledBindingId="uspContactIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="contactSensor" method="listDeviceStateMenuOptions"/>
+    </Field>
+    <Field id="space-uspContact" type="label"
+           visibleBindingId="hubitatPropertyContact" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspContact" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyContact" visibleBindingValue="true"/>
+
+    <!-- Dimmer -->
+    <Field id="space-header-uspDimmer" type="label"
+           visibleBindingId="hubitatPropertyDim" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspDimmer" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyDim" visibleBindingValue="true">>
+        <Label>Dimmer</Label>
+    </Field>
+    <Field id="uspDimmer" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyDim" visibleBindingValue="true">
+        <Label>Dimmer:</Label>
+        <Description>Associated with Hubitat 'dim' Property</Description>
+    </Field>
+    <Field id="uspDimmerIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspDimmerIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspDimmer" visibleBindingValue="true" enabledBindingId="uspDimmerIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="dimmer" method="listDeviceStateMenuOptions"/>
+    </Field>
+    <Field id="uspColorRGB" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyColor" visibleBindingValue="true">
+        <Label>Color:</Label>
+        <Description>Associated with Hubitat 'color-mode' Property</Description>
+    </Field>
+    <Field id="uspWhiteTemperature" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyColorTemperature" visibleBindingValue="true">
+        <Label>Color Temperature:</Label>
+        <Description>Associated with Hubitat 'color-temperature' Property</Description>
+    </Field>
+    <Field id="uspKelvinMinimum" type="textfield" defaultValue="2500"
+           visibleBindingId="uspWhiteTemperature" visibleBindingValue="true">
+        <Label>Kelvin Minimum:</Label>
+    </Field>
+    <Field id="uspKelvinMaximum" type="textfield" defaultValue="9000"
+           visibleBindingId="uspWhiteTemperature" visibleBindingValue="true">
+        <Label>Kelvin Maximum:</Label>
+    </Field>
+    <Field id="space-uspDimmer" type="label"
+           visibleBindingId="hubitatPropertyDim" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspDimmer" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyDim" visibleBindingValue="true"/>
+
+    <!-- Energy -->
+    <Field id="space-header-uspEnergy" type="label"
+           visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspEnergy" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true">>
+        <Label>Energy</Label>
+    </Field>
+    <Field id="uspEnergy" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true">
+        <Label>Accumulated Energy Total:</Label>
+    </Field>
+    <Field id="uspEnergyIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspEnergyIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspEnergy" visibleBindingValue="true" enabledBindingId="uspEnergyIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="energy" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="uspEnergyUnits" type="textfield" defaultValue="Watts"
+            visibleBindingId="uspEnergy" visibleBindingValue="true">
+        <Label>Energy Units:</Label>
+    </Field>
+    <Field id="uspEnergyDecimalPlaces" type="menu" defaultValue="0"
+           visibleBindingId="uspEnergy" visibleBindingValue="true">
+        <Label>Energy Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="space-uspEnergy" type="label"
+           visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspEnergy" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true"/>
+
+    <!-- Humidity -->
+    <Field id="space-header-uspHumidity" type="label"
+           visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspHumidity" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true">>
+        <Label>Humidity</Label>
+    </Field>
+    <Field id="uspHumidity" type="checkbox" defaultValue="false"
+           visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true">
+        <Label>Humidity:</Label>
+        <Description>Associated with Hubitat 'humidity' Property</Description>
+    </Field>
+    <Field id="uspHumidityIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspHumidityIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspHumidity" visibleBindingValue="true" enabledBindingId="uspHumidityIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="humiditySensor" method="listDeviceStateMenuOptions"/>
+    </Field>
+    <Field id="uspHumidityDecimalPlaces" type="menu" defaultValue="0"
+           visibleBindingId="uspHumidity" visibleBindingValue="true">
+        <Label>Humidity Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="space-uspHumidity" type="label"
+           visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspHumidity" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true"/>
+
+   <!-- Illuminance -->
+    <Field id="space-header-uspIlluminance" type="label"
+           visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspIlluminance" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true">>
+        <Label>Illuminance</Label>
+    </Field>
+    <Field id="uspIlluminance" type="checkbox" defaultValue="false"
+           visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true">
+        <Label>Illuminance:</Label>
+        <Description>Associated with Hubitat 'illuminance' Property</Description>
+    </Field>
+    <Field id="uspIlluminanceIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspIlluminanceIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspIlluminance" visibleBindingValue="true" enabledBindingId="uspIlluminanceIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="illuminanceSensor" method="listDeviceStateMenuOptions"/>
+    </Field>
+    <Field id="uspIlluminanceUnits" type="textfield" defaultValue="Lux"
+           visibleBindingId="uspIlluminance" visibleBindingValue="true">
+        <Label>Illuminance Units:</Label>
+    </Field>
+    <Field id="uspIlluminanceDecimalPlaces" type="menu" defaultValue="0"
+           visibleBindingId="uspIlluminance" visibleBindingValue="true">
+        <Label>Illuminance Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="space-uspIlluminance" type="label"
+           visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspIlluminance" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true"/>
+
+    <!-- Motion -->
+    <Field id="space-header-uspMotion" type="label"
+           visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspMotion" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true">>
+        <Label>Motion</Label>
+    </Field>
+    <Field id="uspMotion" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true">
+        <Label>Motion:</Label>
+        <Description>Associated with Hubitat 'motion' Property</Description>
+    </Field>
+    <Field id="uspMotionIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspMotionIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspMotion" visibleBindingValue="true" enabledBindingId="uspMotionIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="motionSensor" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="space-uspMotion" type="label"
+           visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspMotion" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true"/>
+
+    <!-- On/Off -->
+    <Field id="space-header-uspOnOff" type="label"
+           visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspOnOff" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true">>
+        <Label>On/Off</Label>
+    </Field>
+    <Field id="uspOnOff" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true">
+        <Label>On / Off:</Label>
+        <Description>Associated with Hubitat 'onoff' Property</Description>
+    </Field>
+    <Field id="uspOnOffIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspOnOffIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspOnOff" visibleBindingValue="true" enabledBindingId="uspOnOffIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="onoff" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="space-uspOnOff" type="label"
+           visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspOnOff" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true"/>
+
+    <!-- Power -->
+    <Field id="space-header-uspPower" type="label"
+           visibleBindingId="hubitatPropertyPower" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspPower" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyPower" visibleBindingValue="true">>
+        <Label>Power</Label>
+    </Field>
+    <Field id="uspPower" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyPower" visibleBindingValue="true">
+        <Label>Power:</Label>
+        <Description>Associated with Hubitat 'power' Property</Description>
+    </Field>
+    <Field id="uspPowerIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspPowerIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspPower" visibleBindingValue="true" enabledBindingId="uspPowerIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="power" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="uspPowerMinimumLevel" type="textfield" defaultValue="0"
+            visibleBindingId="uspPower" visibleBindingValue="true">
+        <Label>Minimum Power Level:</Label>
+    </Field>
+    <Field id="uspPowerUnits" type="textfield" defaultValue="Watts"
+            visibleBindingId="uspPower" visibleBindingValue="true">
+        <Label>Power Units:</Label>
+    </Field>
+    <Field id="uspPowerDecimalPlaces" type="menu" defaultValue="0"
+           visibleBindingId="uspPower" visibleBindingValue="true">
+        <Label>Power Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="space-uspPower" type="label"
+           visibleBindingId="hubitatPropertyPower" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspPower" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyPower" visibleBindingValue="true"/>
+
+    <!-- Presence -->
+    <Field id="space-header-uspPresence" type="label"
+           visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspPresence" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true">>
+        <Label>Presence</Label>
+    </Field>
+    <Field id="uspPresence" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true">
+        <Label>Presence:</Label>
+        <Description>Associated with Hubitat 'presence' Property</Description>
+    </Field>
+    <Field id="uspPresenceIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspPresenceIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspPresence" visibleBindingValue="true" enabledBindingId="uspPresenceIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="presence" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="space-uspPresence" type="label"
+           visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uuspPresence" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true"/>
+
+    <!-- Pressure -->
+    <Field id="space-header-uspPressure" type="label"
+           visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspPressure" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true">>
+        <Label>Pressure</Label>
+    </Field>
+    <Field id="uspPressure" type="checkbox" defaultValue="false"
+           visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true">
+        <Label>Pressure:</Label>
+        <Description>Associated with Hubitat 'pressure' Property</Description>
+    </Field>
+    <Field id="uspPressureIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspPressureIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspPressure" visibleBindingValue="true" enabledBindingId="uspPresenceIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="pressure" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="uspPressureUnits" type="textfield" defaultValue="mBar"
+           visibleBindingId="uspPressure" visibleBindingValue="true">
+        <Label>Pressure Units:</Label>
+    </Field>
+    <Field id="uspPressureDecimalPlaces" type="menu" defaultValue="0"
+           visibleBindingId="uspPressure" visibleBindingValue="true">
+        <Label>Pressure Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="space-uspPressure" type="label"
+           visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspPressure" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true"/>
+
+    <!-- Temperature -->
+    <Field id="space-header-uspTemperature" type="label"
+           visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspTemperature" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true">>
+        <Label>Temperature</Label>
+    </Field>
+    <Field id="uspTemperature" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true">
+        <Label>Temperature:</Label>
+        <Description>Associated with Hubitat 'temperature' Property</Description>
+    </Field>
+    <Field id="uspTemperatureEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspTemperatureIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspTemperature" visibleBindingValue="true" enabledBindingId="uspTemperatureEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="temperatureSensor" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="uspTemperatureUnitsConversion" type="menu" defaultValue="C"
+           visibleBindingId="uspTemperature" visibleBindingValue="true">
+        <Label>Temperature Units:</Label>
+        <List>
+            <Option value="C">Centigrade [ºC]</Option>
+            <Option value="F">Fahrenheit [ºF]</Option>
+            <Option value="C>F">Convert ºC > ºF</Option>
+            <Option value="F>C">Convert ºF > ºC</Option>
+        </List>
+    </Field>
+    <Field id="uspTemperatureDecimalPlaces" type="menu" defaultValue="0"
+           visibleBindingId="uspTemperature" visibleBindingValue="true">
+        <Label>Temperature Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="uspHvacMode" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyHvacMode" visibleBindingValue="true">
+        <Label>HVAC Mode:</Label>
+        <Description>Associated with Hubitat 'mode' Property</Description>
+    </Field>
+    <Field id="uspHvacState" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyHvacState" visibleBindingValue="true">
+        <Label>HVAC State:</Label>
+        <Description>Associated with Hubitat 'state' Property</Description>
+    </Field>
+    <Field id="space-uspTemperature" type="label"
+           visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspTemperature" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"/>
+
+    <!-- Setpoint -->
+    <Field id="space-header-uspSetpoint" type="label"
+           visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspSetpoint" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true">>
+        <Label>Setpoint</Label>
+    </Field>
+    <Field id="uspSetpoint" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true">
+        <Label>Setpoint:</Label>
+        <Description>Associated with Hubitat 'setpoint' Property</Description>
+    </Field>
+    <Field id="uspSetpointIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspSetpointIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspSetpoint" visibleBindingValue="true" enabledBindingId="uspSetpointIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="setpoint" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="uspSetpointUnitsConversion" type="menu" defaultValue="C"
+           visibleBindingId="uspSetpoint" visibleBindingValue="true">
+        <Label>Setpoint Units:</Label>
+        <List>
+            <Option value="C">Centigrade [ºC]</Option>
+            <Option value="F">Fahrenheit [ºF]</Option>
+            <Option value="C>F">Convert ºC > ºF</Option>
+            <Option value="F>C">Convert ºF > ºC</Option>
+        </List>
+    </Field>
+    <Field id="uspSetpointDecimalPlaces" type="menu" defaultValue="0"
+           visibleBindingId="uspSetpoint" visibleBindingValue="true">
+        <Label>Setpoint Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="space-uspSetpoint" type="label"
+           visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspSetpoint" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true"/>
+
+    <!-- Valve -->
+    <Field id="space-header-uspValve" type="label"
+           visibleBindingId="hubitatPropertyValve" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspValve" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyValve" visibleBindingValue="true">>
+        <Label>Valve</Label>
+    </Field>
+    <Field id="uspValve" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyValve" visibleBindingValue="true">
+        <Label>Valve:</Label>
+        <Description>Associated with Hubitat 'valve [Dim]' Property</Description>
+    </Field>
+    <Field id="uspValveIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspValveIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspValve" visibleBindingValue="true" enabledBindingId="uspValveIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="valve" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="space-uspValve" type="label"
+           visibleBindingId="hubitatPropertyValve" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspValve" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyValve" visibleBindingValue="true"/>
+
+    <!-- Voltage -->
+    <Field id="space-header-uspVoltage" type="label"
+           visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspVoltage" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true">>
+        <Label>Voltage</Label>
+    </Field>
+    <Field id="uspVoltage" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true">
+        <Label>Voltage:</Label>
+        <Description>Associated with Hubitat 'voltage' Property</Description>
+    </Field>
+    <Field id="uspVoltageIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspVoltageIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspVoltage" visibleBindingValue="true" enabledBindingId="uspVoltageIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="voltage" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="uspVoltageDecimalPlaces" type="menu" defaultValue="0"
+           visibleBindingId="uspVoltage" visibleBindingValue="true">
+        <Label>Voltage Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="space-uspVoltage" type="label"
+           visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspVoltage" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true"/>
+
+<!-- User Selectable Broadcast Logging - Visibility set dependant on User Selectable Properties enabled  -->
+
+<!--    <Field id="separator-3" type="separator" alwaysUseInDialogHeightCalc="true"/>-->
+    <Field id="header-logging" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>LOGGING</Label>
+    </Field>
+
+    <!-- Acceleration -->
+    <Field id="hideAccelerationBroadcast" type="checkbox" defaultValue="false"
+           visibleBindingId="uspAcceleration" visibleBindingValue="true">
+        <Description>Hide acceleration message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideAccelerationBroadcast" type="label"
+           visibleBindingId="uspAcceleration" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Button -->
+    <Field id="hideButtonBroadcast" type="checkbox" defaultValue="false"
+           visibleBindingId="uspButton" visibleBindingValue="true">
+        <Description>Hide button presses message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideButtonBroadcast" type="label"
+           visibleBindingId="uspButton" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Contact -->
+    <Field id="hideContactBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspContact" visibleBindingValue="true">
+        <Description>Hide contact sensor message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideContactBroadcast" type="label"
+           visibleBindingId="uspContact" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Dimmer -->
+    <Field id="hideDimmerBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspDimmer" visibleBindingValue="true">
+        <Description>Hide dimmer message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideDimmerBroadcast" type="label"
+           visibleBindingId="uspDimmer" visibleBindingValue="true"><Label/></Field>
+
+    <!-- HVAC Mode -->
+     <Field id="hideHvacModeBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspHvacMode" visibleBindingValue="true">
+        <Description>Hide hvac mode message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideHvacModeBroadcast" type="label"
+           visibleBindingId="uspHvacMode" visibleBindingValue="true"><Label/></Field>
+
+    <!-- HVAC State -->
+     <Field id="hideHvacStateBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspHvacState" visibleBindingValue="true">
+        <Description>Hide hvac state message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideHvacStateBroadcast" type="label"
+           visibleBindingId="uspHvacState" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Humidity -->
+     <Field id="hideHumidityBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspHumidity" visibleBindingValue="true">
+        <Description>Hide humidity message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideHumidityBroadcast" type="label"
+           visibleBindingId="uspHumidity" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Illuminance -->
+    <Field id="hideIlluminanceBroadcast" type="checkbox" defaultValue="false"
+           visibleBindingId="uspIlluminance" visibleBindingValue="true">
+        <Description>Hide illuminance message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideIlluminanceBroadcast" type="label"
+           visibleBindingId="uspIlluminance" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Motion -->
+    <Field id="hideMotionBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspMotion" visibleBindingValue="true">
+        <Description>Hide motion sensor message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideMotionBroadcast" type="label"
+           visibleBindingId="uspMotion" visibleBindingValue="true"><Label/></Field>
+
+    <!-- On / Off -->
+    <Field id="hideOnOffBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspOnOff" visibleBindingValue="true">
+        <Description>Hide On / Off message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideOnOffBroadcast" type="label"
+           visibleBindingId="uspOnOff" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Power -->
+    <Field id="hidePowerBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspPower" visibleBindingValue="true">
+        <Description>Hide power usage message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hidePowerBroadcast" type="label"
+           visibleBindingId="uspPower" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Presence -->
+    <Field id="hidePresenceBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspPresence" visibleBindingValue="true">
+        <Description>Hide presence message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hidePresenceBroadcast" type="label"
+           visibleBindingId="uspPresence" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Pressure -->
+    <Field id="hidePressureBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspPressure" visibleBindingValue="true">
+        <Description>Hide pressure message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hidePressureBroadcast" type="label"
+           visibleBindingId="uspPressure" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Setpoint -->
+    <Field id="hideSetpointBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspSetpoint" visibleBindingValue="true">
+        <Description>Hide setpoint message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideSetpointBroadcast" type="label"
+           visibleBindingId="uspSetpoint" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Temperature -->
+    <Field id="hideTemperatureBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspTemperature" visibleBindingValue="true">
+        <Description>Hide temperature message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideTemperatureBroadcast" type="label"
+           visibleBindingId="uspTemperature" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Valve -->
+    <Field id="hideValveBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspValve" visibleBindingValue="true">
+        <Description>Hide thermostat valve message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideValveBroadcast" type="label"
+           visibleBindingId="uspValve" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Voltage -->
+    <Field id="hideVoltageBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspVoltage" visibleBindingValue="true">
+        <Description>Hide voltage message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideVoltageBroadcast" type="label"
+           visibleBindingId="uspVoltage" visibleBindingValue="true"><Label/></Field>
+
+</Template>

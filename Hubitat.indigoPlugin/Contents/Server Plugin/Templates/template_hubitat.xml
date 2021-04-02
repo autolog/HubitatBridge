@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<Template>
+    <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
+    <Field id="refreshCallbackMethod" type="textfield" hidden="true" defaultValue="refreshUiCallback"/>
+
+    <Field id="header-T1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>HUBITAT ELEVATION HUB</Label>
+    </Field>
+    <Field id="space-T1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="hubitatHubId" type="menu"  default="0" alwaysUseInDialogHeightCalc="true">
+        <Label>Hubitat Hub:</Label>
+        <List class="self" method="listHubitatHubs" dynamicReload="true"/>
+        <CallbackMethod>listHubitatHubSelected</CallbackMethod>
+    </Field>
+    <Field id="space-T2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="separator-T1" type="separator" alwaysUseInDialogHeightCalc="true"/>
+    <Field id="header-T2" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>HUBITAT DEVICE</Label>
+    </Field>
+    <Field id="space-T3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="hubitatDevice" type="menu"  default="-FIRST-" alwaysUseInDialogHeightCalc="true">
+        <Label>Hubitat Device:</Label>
+        <List class="self" method="listHubitatDevices" dynamicReload="true"/>
+        <CallbackMethod>listHubitatDeviceSelected</CallbackMethod>
+    </Field>
+    <Field id="space-T4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="refreshHubitatDevice" type="button"
+           tooltip="Click to refresh Hubitat Device.">
+        <Label>Refresh Hubitat Device</Label>
+        <Title>Refresh</Title>
+        <CallbackMethod>refreshHubitatDevice</CallbackMethod>
+    </Field>
+
+    <Field id="space-T5" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="hubitatDeviceDriver" type="textfield" defaultValue="-">
+        <Label>Hubitat Device Driver:</Label>
+    </Field>
+
+    <Field id="space-T6" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="hubitatDeviceProperties" type="list" rows="8">
+        <Label>Properties:</Label>
+        <List class="self" method="listHubitatDeviceProperties" dynamicReload="true"/>
+    </Field>
+    <Field id="space-T7" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="separator-T2" type="separator" alwaysUseInDialogHeightCalc="true"/>
+    <Field id="header-T3" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>REQUIRED INDIGO STATES / DEVICES</Label>
+    </Field>
+<!--    <Field id="space-T8" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>-->
+
+</Template>

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<PluginConfig>
+    <SupportURL>https://forums.indigodomo.com/viewforum.php?f=66</SupportURL>
+    <Field id="description" type="label">
+        <Label>This Plugin links Indigo to Hubitat via MQTT. 😄</Label>
+    </Field>
+    <Field id="copyright" type="label">
+        <Label>Copyright © 2021 Autolog</Label>
+    </Field>
+
+	<Field id="space_1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="separator-1" type="separator" alwaysUseInDialogHeightCalc="true"/>
+	<Field id="header-1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>PLUGIN / INDIGO EVENT LOG LOGGING</Label>
+    </Field>
+
+	<Field id="space_2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+	<Field id="eventLogLevel" type="menu" defaultValue="20" alwaysUseInDialogHeightCalc="true">
+		<Label>Logging Level - Indigo Event Log:</Label>
+		<List>
+			<Option value="10">Debugging Messages</Option>
+			<Option value="15">MQTT Topic Logging Messages</Option>
+			<Option value="20">Informational Messages</Option>
+			<Option value="30">Warning Messages</Option>
+			<Option value="40">Error Messages</Option>
+			<Option value="50">Critical Errors Only</Option>
+		</List>
+	</Field>
+
+	<Field id="pluginLogLevel" type="menu" defaultValue="20" alwaysUseInDialogHeightCalc="true">
+		<Label>Logging Level - Plugin Event Log:</Label>
+		<List>
+			<Option value="10">Debugging Messages</Option>
+			<Option value="15">MQTT Topic Logging Messages</Option>
+			<Option value="20">Informational Messages</Option>
+			<Option value="30">Warning Messages</Option>
+			<Option value="40">Error Messages</Option>
+			<Option value="50">Critical Errors Only</Option>
+		</List>
+	</Field>
+
+    <Field id="separator-3" type="separator" alwaysUseInDialogHeightCalc="true"/>
+	<Field id="header-3" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>MQTT FILTERING</Label>
+    </Field>
+
+	<Field id="space_3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="mqttMessageFilter" type="list" alwaysUseInDialogHeightCalc="true" rows="10"
+		   default="-" >
+        <Label>MQTT Filter Messages:</Label>
+        <List class="self" method="mqttListHubitatDevices" dynamicReload="true"/>
+    </Field>
+    <Field id="space-4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+</PluginConfig>
