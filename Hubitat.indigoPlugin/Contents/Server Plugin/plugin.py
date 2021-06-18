@@ -932,8 +932,8 @@ class Plugin(indigo.PluginBase):
                 plugin_props["SupportsEnergyMeter"] = True
                 plugin_props["SupportsEnergyMeterCurPower"] = True
                 plugin_props["SupportsAccumEnergyTotal"] = True
-            if "tasmotaDevice" not in plugin_props:
-                plugin_props["tasmotaDevice"] = "-SELECT-"  # Name of Tasmota Device - Default: "-SELECT-", "-- Select Tasmota Device --"
+                if "tasmotaDevice" not in plugin_props:
+                    plugin_props["tasmotaDevice"] = "-SELECT-"  # Name of Tasmota Device - Default: "-SELECT-", "-- Select Tasmota Device --"
 
             elif type_id == "hubitatElevationHub":
                 if "hub_name" not in plugin_props:
