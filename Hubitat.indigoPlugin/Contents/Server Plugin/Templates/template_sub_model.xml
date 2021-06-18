@@ -2,33 +2,33 @@
 <Template>
     <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
     <Field id="member_of_device_group" type="checkbox" hidden="true"
-           tooltip="This is a flag for checking device is associated with a Desktop Controller device.">
+           tooltip="This is a flag for checking whether this secondary device is associated with a primary device.">
         <Label>Member of Device Group:</Label>
     </Field>
 
     <Field id="warning" type="label" visibleBindingId="member_of_device_group" visibleBindingValue="false"
             fontColor="red">
-        <Label>You are not allowed to directly create an Acceleration Sensor Sub-Model device as it will be automatically created and associated with a primary device of a device group if it is required. Cancel and then delete this device.</Label>
+        <Label>You are not allowed to directly create this secondary device as it will be automatically created and associated with a primary device of a device group if it is required. Cancel and then delete this device.</Label>
     </Field>
 
     <Field id="info" type="label" visibleBindingId="member_of_device_group" visibleBindingValue="true">
-        <Label>This is a secondary device of a device group. For more settings and details about this Hubitat device, select the first device in the group.</Label>
+        <Label>This is a secondary device of a device group. For more settings and details about this device, select the first device in the group.</Label>
     </Field>
 
     <!-- Linked Indigo Device -->
-    <Field id="linkedIndigoDevice" type="textfield" defaultValue="Some info ..." ReadOnly="YES"
+    <Field id="linkedPrimaryIndigoDevice" type="textfield" defaultValue="Some info ..." ReadOnly="YES"
             visibleBindingId="member_of_device_group" visibleBindingValue="true"
-           tooltip="Linked Indigo Device">
-        <Label>Linked Indigo Device:</Label>
+           tooltip="Linked PrimaryIndigo Device">
+        <Label>Linked Primary Indigo Device:</Label>
     </Field>
 
     <!-- Linked Indigo Device Id-->
-    <Field id="linkedIndigoDeviceId" type="textfield" defaultValue="0" ReadOnly="YES" hidden="true" />
+    <Field id="linkedPrimaryIndigoDeviceId" type="textfield" defaultValue="0" ReadOnly="YES" hidden="true" />
 
     <!-- Linked Hubitat Device -->
-    <Field id="linkedHubitatDevice" type="textfield" defaultValue="Some info ..." ReadOnly="YES"
+    <Field id="associatedHubitatDevice" type="textfield" defaultValue="Some info ..." ReadOnly="YES"
             visibleBindingId="member_of_device_group" visibleBindingValue="true"
-           tooltip="Linked Hubitat Device">
-        <Label>Linked Hubitat Device:</Label>
+           tooltip="Associated Hubitat Device">
+        <Label>Associated Hubitat Device:</Label>
     </Field>
 </Template>

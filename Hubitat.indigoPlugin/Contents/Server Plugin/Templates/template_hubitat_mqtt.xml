@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+
+<Template>
+    <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
+
+<!-- Hubitat Elevation Configuration   -->
+    <Field id="header-1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>Hubitat Hub</Label>
+    </Field>
+    <Field id="space-1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="hub_name" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>Hubitat Elevation (HE) Name:</Label>
+    </Field>
+    <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be the Hub Name as recorded in the THE HE MQTT Broker Settings.</Label>
+    </Field>
+    <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqtt_broker_ip" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Broker IP Address:</Label>
+    </Field>
+    <Field id="help-2" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be the MQTT Broker IP Address as recorded in the THE HE MQTT Broker Settings.</Label>
+    </Field>
+    <Field id="space-3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqtt_broker_port" type="textfield"  defaultValue="1883" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Broker Port Address:</Label>
+    </Field>
+    <Field id="help-3" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be the MQTT Broker Port Address as recorded in the THE HE MQTT Broker Settings.</Label>
+    </Field>
+    <Field id="space-4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="separator-T1" type="separator" alwaysUseInDialogHeightCalc="true"/>
+
+<!-- Hubitat Elevation Properties   -->
+    <Field id="hubitatPropertyHsm" type="checkbox" defaultValue="false" hidden="true" />
+
+<!-- User Selectable Properties - Visibility set dependant on Hubitat Properties enabled  -->
+
+    <!-- HSM -->
+    <Field id="space-header-uspHsm" type="label"
+           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspHsm" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">>
+        <Label>HSM</Label>
+    </Field>
+    <Field id="uspHsm" type="checkbox" defaultValue="false"
+           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">
+        <Label>Hubitat Safety Monitor:</Label>
+        <Description>Associated with Hubitat 'hsm' Property</Description>
+    </Field>
+<!--
+    <Field id="uspHsmIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspHsmIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspHsm" visibleBindingValue="true" enabledBindingId="uspHsmIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="alarm" method="listDeviceStateMenuOptions"/>
+    </Field>
+-->
+    <Field id="space-uspHsm" type="label"
+           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspHsm" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"/>
+
+<!-- User Selectable Broadcast Logging - Visibility set dependant on User Selectable Properties enabled  -->
+
+<!--    <Field id="separator-3" type="separator" alwaysUseInDialogHeightCalc="true"/>-->
+    <Field id="header-logging" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green"
+            visibleBindingId="uspHsm" visibleBindingValue="true">
+        <Label>LOGGING</Label>
+    </Field>
+
+    <!-- HSM -->
+    <Field id="hideHsmBroadcast" type="checkbox" defaultValue="false"
+           visibleBindingId="uspHsm" visibleBindingValue="true">
+        <Description>Hide Hubitat Safety Monitor message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideHsmBroadcast" type="label"
+           visibleBindingId="uspHsm" visibleBindingValue="true"><Label/></Field>
+</Template>

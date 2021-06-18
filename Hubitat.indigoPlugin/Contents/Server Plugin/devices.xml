@@ -2,34 +2,9 @@
 <Devices>
     <!-- Hubitat Elevation Hub -->
     <Device id="hubitatElevationHub"  type="custom">
-        <Name>Hubitat Elevation Hub</Name>
+        <Name>Hubitat Elevation Hub [MQTT Client]</Name>
         <ConfigUI>
-            <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
-            <Field id="header-1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
-                <Label>Hubitat Hub</Label>
-            </Field>
-            <Field id="space-1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
-            <Field id="hub_name" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
-                <Label>Hubitat Elevation (HE) Name:</Label>
-            </Field>
-            <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
-                <Label>^ Must be the Hub Name as recorded in the THE HE MQTT Broker Settings.</Label>
-            </Field>
-            <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
-            <Field id="mqtt_broker_ip" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
-                <Label>MQTT Broker IP Address:</Label>
-            </Field>
-            <Field id="help-2" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
-                <Label>^ Must be the MQTT Broker IP Address as recorded in the THE HE MQTT Broker Settings.</Label>
-            </Field>
-            <Field id="space-3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
-            <Field id="mqtt_broker_port" type="textfield"  defaultValue="1883" alwaysUseInDialogHeightCalc="true">
-                <Label>MQTT Broker Port Address:</Label>
-            </Field>
-            <Field id="help-3" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
-                <Label>^ Must be the MQTT Broker Port Address as recorded in the THE HE MQTT Broker Settings.</Label>
-            </Field>
-
+            <Template file="Templates/template_hubitat_mqtt.xml" />
 		</ConfigUI>
         <States>
             <State id="heartbeat">
@@ -56,22 +31,149 @@
         <UiDisplayStateId>status</UiDisplayStateId>
 	</Device>
 
-    <!-- Button -->
-    <Device id="button"  type="custom">
+    <Device id="tasmota"  type="custom">
+        <Name>Tasmota [MQTT Client]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_tasmota_mqtt.xml" />
+		</ConfigUI>
+        <States>
+            <State id="lastPayload">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Payload changed</TriggerLabel>
+                <ControlPageLabel>Last Payload</ControlPageLabel>
+            </State>
+            <State id="lastTopic">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Topic changed</TriggerLabel>
+                <ControlPageLabel>Last Topic</ControlPageLabel>
+            </State>
+            <State id="status">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Status changed</TriggerLabel>
+                <ControlPageLabel>Status</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>status</UiDisplayStateId>
+	</Device>
+
+    <!-- Tasmota Outlet (Socket) -->
+    <Device id="tasmotaOutlet"  type="relay" subType="indigo.kRelayDeviceSubType.Outlet">
+        <Name>Tasmota Outlet (Socket)</Name>
+        <ConfigUI>
+            <Template file="Templates/template_tasmota_device.xml" />
+		</ConfigUI>
+        <States>
+
+            <State id="friendlyName">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Tasmota Friendly Name changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Friendly Name</ControlPageLabel>
+            </State>
+            <State id="ipAddress">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Tasmota IP Address changed</TriggerLabel>
+                <ControlPageLabel>Tasmota IP Address</ControlPageLabel>
+            </State>
+            <State id="macAddress">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Tasmota MAC Address changed</TriggerLabel>
+                <ControlPageLabel>Tasmota MAC Address</ControlPageLabel>
+            </State>
+            <State id="model">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Tasmota Model changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Model</ControlPageLabel>
+            </State>
+            <State id="lwt">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Tasmota LWT changed</TriggerLabel>
+                <ControlPageLabel>Tasmota LWT</ControlPageLabel>
+            </State>
+
+
+            <State id="energyApparentPower">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Tasmota Energy Apparent Power changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Apparent Power</ControlPageLabel>
+            </State>
+            <State id="energyCurrent">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>Tasmota Energy Current changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Current</ControlPageLabel>
+            </State>
+            <State id="energyFactor">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Tasmota Energy Factor changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Factor</ControlPageLabel>
+            </State>
+            <State id="energyPeriod">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Tasmota Energy Period changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Period</ControlPageLabel>
+            </State>
+            <State id="energyPower">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Tasmota Energy Power changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Power</ControlPageLabel>
+            </State>
+            <State id="energyReactivePower">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Tasmota Energy Reactive Power changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Reactive Power</ControlPageLabel>
+            </State>
+            <State id="energyToday">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>>Tasmota Energy Today changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Today</ControlPageLabel>
+            </State>
+            <State id="energyTotal">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>>Tasmota Energy Total changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Total</ControlPageLabel>
+            </State>
+            <State id="energyTotalStartTime">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Tasmota Energy Start Time changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Start Time</ControlPageLabel>
+            </State>
+            <State id="energyVoltage">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Tasmota Energy Power changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Power</ControlPageLabel>
+            </State>
+            <State id="energyYesterday">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>Tasmota Energy Power changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Energy Power</ControlPageLabel>
+            </State>
+            <State id="tasmotaUpdateTime">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Tasmota Update Time changed</TriggerLabel>
+                <ControlPageLabel>Tasmota Update Time</ControlPageLabel>
+            </State>
+        </States>
+
+
+
+	</Device>
+
+<!--
+    <Device id="button"  type="scene" subType="indigo.kSceneDeviceSubType.Scene">>
         <Name>Scene (Button)</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
-            <Template file="Templates/template_properties.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
 		</ConfigUI>
         <UiDisplayStateId>lastButtonPressed</UiDisplayStateId>
     </Device>
+-->
 
     <!-- Contact Sensor -->
-    <Device id="contactSensor"  type="sensor">
+    <Device id="contactSensor"  type="sensor" subType="indigo.kSensorDeviceSubType.Contact">
         <Name>Contact Sensor</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
-            <Template file="Templates/template_properties.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
 		</ConfigUI>
 	</Device>
 
@@ -80,43 +182,62 @@
         <Name>Dimmer (Light)</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
-            <Template file="Templates/template_properties.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Humidity Sensor -->
+    <Device id="humiditySensor" type="sensor" subType="indigo.kSensorDeviceSubType.Humidity">
+        <Name>Humidity Sensor</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
 		</ConfigUI>
 	</Device>
 
     <!-- Motion Sensor -->
-    <Device id="motionSensor"  type="sensor">
+    <Device id="motionSensor" type="sensor" subType="indigo.kSensorDeviceSubType.Motion">
         <Name>Motion Sensor</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
-            <Template file="Templates/template_properties.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
 		</ConfigUI>
 	</Device>
 
     <!-- Multi-Sensor -->
-    <Device id="multiSensor"  type="sensor">
+    <Device id="multiSensor"  type="sensor" subType="indigo.kSensorDeviceSubType.Motion">
         <Name>Multi-Sensor</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
-            <Template file="Templates/template_properties.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
 		</ConfigUI>
 	</Device>
 
     <!-- Outlet (Socket) -->
-    <Device id="outlet"  type="relay">
+    <Device id="outlet"  type="relay" subType="indigo.kRelayDeviceSubType.Outlet">
         <Name>Outlet (Socket)</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
-            <Template file="Templates/template_properties.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
 		</ConfigUI>
 	</Device>
 
+    <!-- Scene / Button -->
+    <Device id="button"  type="custom">
+        <Name>Scene (Button)</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
+		</ConfigUI>
+        <UiDisplayStateId>lastButtonPressed</UiDisplayStateId>
+    </Device>
+
     <!-- Temperature Sensor -->
-	<Device id="temperatureSensor" type="thermostat">
+	<Device id="temperatureSensor"  type="sensor" subType="indigo.kSensorDeviceSubType.Temperature">
         <Name>Temperature Sensor</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
-            <Template file="Templates/template_properties.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
 		</ConfigUI>
 	</Device>
 
@@ -125,66 +246,113 @@
         <Name>Thermostat</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
-            <Template file="Templates/template_properties.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
 		</ConfigUI>
 	</Device>
 
-    <!-- Sub-Models [Secondary Devices in a Device Group] Follow Below -->
+    <!-- Secondary Devices in a Device Group Follow Below -->
 
-    <!-- Acceleration Sensor [Sub-Model] -->
-    <Device id="accelerationSensorSubModel"  type="sensor">
-        <Name>Acceleration Sensor [Sub-Model]</Name>
+    <!-- Acceleration Sensor [Secondary] -->
+    <Device id="accelerationSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Tamper">
+        <Name>Acceleration Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
         <UiDisplayStateId>acceleration</UiDisplayStateId>
 	</Device>
 
-    <!-- Illuminance Sensor [Sub-Model] -->
-    <Device id="illuminanceSensorSubModel"  type="sensor">
-        <Name>Illuminance Sensor [Sub-Model]</Name>
+    <!-- HSM Sensor [Secondary] -->
+    <Device id="hsmSensorSecondary" type="custom" subType="indigo.kDeviceSubType.Security">
+        <Name>HSM [Secondary]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+        <States>
+            <State id="hsmStatus">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Hubitat Safety Monitor Status changed</TriggerLabel>
+                <ControlPageLabel>Hubitat Safety Monitor Status</ControlPageLabel>
+            </State>
+            <State id="hsmAlert">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Hubitat Safety Monitor Alert changed</TriggerLabel>
+                <ControlPageLabel>Hubitat Safety Monitor Alert</ControlPageLabel>
+            </State>
+            <State id="hsmArm">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Hubitat Safety Monitor Arm changed</TriggerLabel>
+                <ControlPageLabel>Hubitat Safety Monitor Arm</ControlPageLabel>
+            </State>
+            <State id="alarmStatus">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Alarm Status changed</TriggerLabel>
+                <ControlPageLabel>Alarm Status</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>alarmStatus</UiDisplayStateId>
+	</Device>
+
+    <!-- Humidity Sensor [Secondary] -->
+    <Device id="humiditySensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Humidity">
+        <Name>Humidity Sensor [Secondary]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Illuminance Sensor [Secondary] -->
+    <Device id="illuminanceSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Illuminance">
+        <Name>Illuminance Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
         <UiDisplayStateId>illuminance</UiDisplayStateId>
 	</Device>
 
-    <!-- Motion Sensor [Sub-Model] -->
-    <Device id="motionSensorSubModel"  type="sensor">
-        <Name>Motion Sensor [Sub-Model]</Name>
+    <!-- Motion Sensor [Secondary] -->
+    <Device id="motionSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Motion">
+        <Name>Motion Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
         <UiDisplayStateId>motion</UiDisplayStateId>
 	</Device>
 
-    <!-- Pressure Sensor [Sub-Model] -->
-    <Device id="pressureSensorSubModel"  type="sensor">
-        <Name>Pressure Sensor [Sub-Model2]</Name>
+    <!-- Presence Sensor [Secondary] -->
+    <Device id="presenceSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Pressure">
+        <Name>Presence Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
 	</Device>
 
-    <!-- Temperature Sensor [Sub-Model] -->
-    <Device id="temperatureSensorSubModel"  type="thermostat">
-        <Name>Temperature Sensor [Sub-Model]</Name>
+    <!-- Pressure Sensor [Secondary] -->
+    <Device id="pressureSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Pressure">
+        <Name>Pressure Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
 	</Device>
 
-    <!-- Valve [Sub-Model] -->
-    <Device id="valveSubModel" type="dimmer">
-        <Name>Thermostat Valve [Sub-Model]</Name>
+    <!-- Temperature Sensor [Secondary] -->
+    <Device id="temperatureSensorSecondary" type="sensor">
+        <Name>Temperature Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
 	</Device>
 
-    <!-- Voltage [Sub-Model] -->
-    <Device id="voltageSubModel" type="sensor">
-        <Name>Voltage [Sub-Model]</Name>
+    <!-- Valve [Secondary] -->
+    <Device id="valveSecondary" type="dimmer" subType="indigo.kDimmerDeviceSubType.Valve">>
+        <Name>Thermostat Valve [Secondary]</Name>
+        <ConfigUI>
+            <Template file="Templates/template_sub_model.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Voltage [Secondary] -->
+    <Device id="voltageSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Voltage">
+        <Name>Voltage [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>

@@ -8,7 +8,7 @@
     </Field>
     <Field id="space-T1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
 
-    <Field id="hubitatHubId" type="menu"  default="0" alwaysUseInDialogHeightCalc="true">
+    <Field id="hubitatHubName" type="menu"  default="" alwaysUseInDialogHeightCalc="true">
         <Label>Hubitat Hub:</Label>
         <List class="self" method="listHubitatHubs" dynamicReload="true"/>
         <CallbackMethod>listHubitatHubSelected</CallbackMethod>

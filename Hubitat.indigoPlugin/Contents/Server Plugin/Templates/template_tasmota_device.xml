@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<Template>
+    <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
+    <Field id="SupportsEnergyMeter" type="Checkbox" defaultValue="true"  hidden="true"/>
+    <Field id="SupportsEnergyMeterCurPower" type="Checkbox" defaultValue="true"  hidden="true"/>
+    <Field id="SupportsAccumEnergyTotal" type="Checkbox" defaultValue="true"  hidden="true"/>
+
+    <Field id="header-T2" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>TASMOTA DEVICE</Label>
+    </Field>
+    <Field id="space-T3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="tasmotaDevice" type="menu"  default="-FIRST-" alwaysUseInDialogHeightCalc="true">
+        <Label>Tasmota Device:</Label>
+        <List class="self" method="listTasmotaDevices" dynamicReload="true"/>
+        <CallbackMethod>listTasmotaDeviceSelected</CallbackMethod>
+    </Field>
+    <Field id="space-T4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="refreshHubitatDevice" type="button"
+           tooltip="Click to refresh Tasmota Device.">
+        <Label>Refresh Tasmota Device</Label>
+        <Title>Refresh</Title>
+        <CallbackMethod>refreshTasmotaDevice</CallbackMethod>
+    </Field>
+
+</Template>

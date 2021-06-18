@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<Template>
+    <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
+
+<!-- Tasmota Configuration   -->
+    <Field id="header-1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>Tasmota</Label>
+    </Field>
+    <Field id="space-1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqtt_broker_ip" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Broker IP Address:</Label>
+    </Field>
+    <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be the MQTT Broker IP Address as recorded by an associated Hubitat Elevation Hub.</Label>
+    </Field>
+    <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqtt_broker_port" type="textfield"  defaultValue="1883" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Broker Port Address:</Label>
+    </Field>
+    <Field id="help-2" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be the MQTT Broker Port Address as recorded by an associated Hubitat Elevation Hub.</Label>
+    </Field>
+    <Field id="space-3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="separator-T1" type="separator" alwaysUseInDialogHeightCalc="true"/>
+
+</Template>

@@ -43,16 +43,32 @@
 
     <Field id="separator-3" type="separator" alwaysUseInDialogHeightCalc="true"/>
 	<Field id="header-3" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
-        <Label>MQTT FILTERING</Label>
+        <Label>HUBITAT MQTT FILTERING</Label>
     </Field>
 
 	<Field id="space_3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
 
-    <Field id="mqttMessageFilter" type="list" alwaysUseInDialogHeightCalc="true" rows="10"
+    <Field id="mqttHubitatMessageFilter" type="list" alwaysUseInDialogHeightCalc="true" rows="10"
 		   default="-" >
         <Label>MQTT Filter Messages:</Label>
         <List class="self" method="mqttListHubitatDevices" dynamicReload="true"/>
     </Field>
     <Field id="space-4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+	<Field id="separator-4" type="separator" alwaysUseInDialogHeightCalc="true"/>
+	<Field id="header-4" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>TASMOTA MQTT FILTERING</Label>
+    </Field>
+
+	<Field id="space_4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="mqttTasmotaMessageFilter" type="list" alwaysUseInDialogHeightCalc="true" rows="10"
+		   default="-" >
+        <Label>MQTT Filter Messages:</Label>
+        <List class="self" method="mqttListTasmotaDevices" dynamicReload="true"/>
+    </Field>
+    <Field id="space-5" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+	<Field id="separator-5" type="separator" alwaysUseInDialogHeightCalc="true"/>
 
 </PluginConfig>

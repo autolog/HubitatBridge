@@ -5,7 +5,6 @@
 #
 
 try:
-    # noinspection PyUnresolvedReferences
     import indigo
 except ImportError, e:
     pass
@@ -19,7 +18,7 @@ import time
 from constants import *
 
 
-# noinspection PyUnresolvedReferences, PyPep8Naming
+# noinspection PyPep8Naming
 class ThreadHubHandler(threading.Thread):
 
     # This class handles Hub processing
@@ -68,6 +67,7 @@ class ThreadHubHandler(threading.Thread):
                                      bind_address="")
             self.mqtt_client.subscribe(self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_TOPIC], qos=1)
             self.hubHandlerLogger.info(u"MQTT subscription to Hubitat Hub '{0}' initialized".format(self.hubitat_hub_name))
+
             self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_CLIENT] = self.mqtt_client
             self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_INITIALISED] = True
 
@@ -77,7 +77,7 @@ class ThreadHubHandler(threading.Thread):
             while not self.threadStop.is_set():
                 try:
                     time.sleep(2)
-                except self.StopThread:
+                except self.threadStop:
                     pass  # Optionally catch the StopThread exception and do any needed cleanup.
                     self.mqtt_client.loop_stop()
                     self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_INITIALISED] = False
@@ -105,8 +105,11 @@ class ThreadHubHandler(threading.Thread):
             else:
                 self.hubHandlerLogger.info(u"MQTT subscription to Hubitat Hub '{0}' ended".format(self.hubitat_hub_name))
             self.mqtt_client.loop_stop()
-            indigo.devices[self.hubitat_hub_id].updateStateOnServer(key='status', value="Disconnected")
-            indigo.devices[self.hubitat_hub_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
+            try:
+                indigo.devices[self.hubitat_hub_id].updateStateOnServer(key='status', value="Disconnected")
+                indigo.devices[self.hubitat_hub_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
+            except KeyError:  # Indigo device may have been already deleted
+                pass
         except Exception as err:
             trace_back = sys.exc_info()[2]
             self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'on_disconnect'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
@@ -158,7 +161,7 @@ class ThreadHubHandler(threading.Thread):
                 return
             if topics[2] == "$implementation":
                 if len(topics) == 4 and topics[3] == "heartbeat":
-                    hub_id = self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_INDIGO_DEVICE_ID]
+                    hub_id = self.globals[HE_HUBS][self.hubitat_hub_name][HE_INDIGO_HUB_ID]
                     if hub_id is None or hub_id == 0:
                         return
                     heartbeat = int(payload.split(",")[0])
@@ -173,24 +176,70 @@ class ThreadHubHandler(threading.Thread):
                 return
             elif topics[2] == "$nodes":
                 return
-            elif topics[2] == "hub":
-                return
 
-            # At this point it should be a Hubitat device
+            # At this point it should be a Hubitat device (including 'hub')
 
             hubitat_device_name = topics[2]
 
-            log_mqtt_msg = True  # Assume MQTT message should be logged
-            # Check if MQTT message filtering required
-            if HE_MQTT_FILTERS in self.globals:
-                if len(self.globals[HE_MQTT_FILTERS]) > 0:
-                    mqtt_filter_key = u"{0}|||{1}".format(self.hubitat_hub_name.lower(), hubitat_device_name.lower())
-                    # As entries exist in the filter list, only log MQTT message in Hubitat device in the filterlist
-                    if mqtt_filter_key not in self.globals[HE_MQTT_FILTERS]:
-                        log_mqtt_msg = False  # As Hubitat device not in the filter list (and filter entries present) - don't log MQTT message
+            # log_mqtt_msg = True  # Assume MQTT message should be logged
+            # # Check if MQTT message filtering required
+            # if HE_MQTT_FILTERS in self.globals:
+            #     if len(self.globals[HE_MQTT_FILTERS]) > 0:
+            #         mqtt_filter_key = u"{0}|||{1}".format(self.hubitat_hub_name.lower(), hubitat_device_name.lower())
+            #         # As entries exist in the filter list, only log MQTT message in Hubitat device in the filterlist
+            #         if mqtt_filter_key not in self.globals[HE_MQTT_FILTERS]:
+            #             log_mqtt_msg = False  # As Hubitat device not in the filter list (and filter entries present) - don't log MQTT message
 
-            if log_mqtt_msg:
-                self.hubHandlerLogger.topic(u"Received from '{0}': Topic='{1}', Payload='{2}'".format(self.hubitat_hub_name, msg.topic, payload))
+            # if log_mqtt_msg:
+            #     self.hubHandlerLogger.topic(u"Received from '{0}': Topic='{1}', Payload='{2}'".format(self.hubitat_hub_name, msg.topic, payload))
+
+            mqtt_filter_key = u"{0}|{1}".format(self.hubitat_hub_name.lower(), hubitat_device_name.lower())
+            self.mqtt_filter_log_processing(mqtt_filter_key, self.hubitat_hub_name, topics, payload)
+
+            if len(topics) == 3:
+                return
+
+            if topics[2] == "hub":
+                if topics[3][0:3] == "hsm":  # Check if topic starts with "hsm"
+                    hub_dev = indigo.devices[self.hubitat_hub_id]
+                    hub_props = hub_dev.ownerProps
+                    if "hubitatPropertyHsm" in hub_props:
+                        if hub_props["hubitatPropertyHsm"] is not True:
+                            hub_props["hubitatPropertyHsm"] = True
+                            hub_dev.replacePluginPropsOnServer(hub_props)
+                        # Check for HSM secondary device
+                        linked_dev_id = self.determine_secondary_device_id(self.hubitat_hub_id, "hsmSensorSecondary")
+                        if bool(linked_dev_id):
+                            hsm_dev = indigo.devices[linked_dev_id]
+
+                            if topics[3] == "hsmStatus":
+                                hsm_dev.updateStateOnServer(key='hsmStatus', value=payload)
+                                if payload == "disarmed":
+                                    hsm_dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
+                                elif payload[0:5] == "armed":
+                                    hsm_dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+                                    # hsm_dev.updateStateOnServer(key='alarmStatus', value=payload)
+                                if hsm_dev.states["hsmAlert"] == "cancel"  or hsm_dev.states["hsmAlert"]  == "none" or payload == "disarmed":
+                                    hsm_dev.updateStateOnServer(key='alarmStatus', value=payload)
+                                if not bool(hub_dev.pluginProps.get("hideHsmBroadcast", False)):
+                                    self.hubHandlerLogger.info(u"received \"{0}\" Hubitat Safety Monitor Status \"{1}\" event".format(hsm_dev.name, payload))
+
+                            elif topics[3] == "hsmAlert":
+                                hsm_dev.updateStateOnServer(key='hsmAlert', value=payload)
+                                if payload == "cancel" or payload == "none":
+                                    hsm_status = hsm_dev.states["hsmStatus"]
+                                    hsm_dev.updateStateOnServer(key='alarmStatus', value=hsm_status)
+                                else:
+                                    hsm_dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+                                    hsm_dev.updateStateOnServer(key='alarmStatus', value=payload)
+                                if not bool(hub_dev.pluginProps.get("hideHsmBroadcast", False)):
+                                    self.hubHandlerLogger.info(u"received \"{0}\" Hubitat Safety Monitor Alert \"{1}\" event".format(hsm_dev.name, payload))
+
+                            elif topics[3] == "hsmArm":
+                                hsm_dev.updateStateOnServer(key='hsmArm', value=payload)
+                                if not bool(hub_dev.pluginProps.get("hideHsmBroadcast", False)):
+                                    self.hubHandlerLogger.info(u"received \"{0}\" Hubitat Safety Monitor Arm \"{1}\" event".format(hsm_dev.name, payload))
+                return
 
             if hubitat_device_name not in self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES]:
                 self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name] = dict()  # Hubitat device name
@@ -202,9 +251,6 @@ class ThreadHubHandler(threading.Thread):
                 self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_DEVICE_DRIVER] = None
             if HE_STATES not in self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name]:
                 self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_STATES] = dict()
-
-            if len(topics) == 3:
-                return
 
             if topics[3] == "$properties":
                 self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_PROPERTIES] = payload
@@ -235,7 +281,7 @@ class ThreadHubHandler(threading.Thread):
                                 dev.updateStateOnServer(key='acceleration', value=value, uiValue=uiValue)
                             elif uspAccelerationIndigo == INDIGO_SECONDARY_DEVICE:
                                 # Find linked device in device group
-                                linked_dev_id = self.determine_sub_model_dev_id(dev_id, "accelerationSensorSubModel")
+                                linked_dev_id = self.determine_secondary_device_id(dev_id, "accelerationSensorSecondary")
                                 if bool(linked_dev_id):
                                     linked_dev = indigo.devices[linked_dev_id]
                                     linked_dev.updateStateOnServer(key='onOffState', value=value, uiValue=uiValue)
@@ -380,8 +426,8 @@ class ThreadHubHandler(threading.Thread):
                             dev.updateStateImageOnServer(indigo.kStateImageSel.DimmerOff)
 
                         dev.updateStateOnServer(key='brightnessLevel', value=brightness_level, uiValue=brightness_level_ui)
-                        # TODO: Check if whiteLevel supported
-                        dev.updateStateOnServer(key='whiteLevel', value=brightness_level)
+                        if bool(dev.pluginProps.get("SupportsWhite", False)):
+                            dev.updateStateOnServer(key='whiteLevel', value=brightness_level)
                         if not bool(dev.pluginProps.get("hideDimmerBroadcast", False)):
                             self.hubHandlerLogger.info(u"received {0} \"{1}\" to {2}".format(brighten_dim_ui, dev.name, brightness_level_ui))
 
@@ -422,7 +468,7 @@ class ThreadHubHandler(threading.Thread):
                             if len(dev_id_list) > 1:
                                 valve_dev_id = 0
                                 for linked_dev_id in dev_id_list:
-                                    if linked_dev_id != dev_id and indigo.devices[linked_dev_id].deviceTypeId == "valveSubModel":
+                                    if linked_dev_id != dev_id and indigo.devices[linked_dev_id].deviceTypeId == "valveSecondary":
                                         valve_dev_id = linked_dev_id
                                 if valve_dev_id == 0:
                                     return
@@ -479,13 +525,25 @@ class ThreadHubHandler(threading.Thread):
                         broadcast_device_name = dev.name
                         if uspHumidityIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
                             dev.updateStateOnServer(key='humidityInput1', value=value, uiValue=uiValue)
-                        elif uspHumidityIndigo == INDIGO_SECONDARY_DEVICE_ADDITIONAL_STATE:
+                        # elif uspHumidityIndigo in (INDIGO_SECONDARY_DEVICE_ADDITIONAL_STATE, INDIGO_SECONDARY_DEVICE):
+                        elif uspHumidityIndigo in (INDIGO_SECONDARY_DEVICE):
                             # Find linked device in device group
-                            linked_dev_id = self.determine_sub_model_dev_id(dev_id, "temperatureSensorSubModel")
+                            linked_dev_id = self.determine_secondary_device_id(dev_id, "humiditySensorSecondary")
                             if bool(linked_dev_id):
                                 linked_dev = indigo.devices[linked_dev_id]
-                                linked_dev.updateStateOnServer(key='humidityInput1', value=value, uiValue=uiValue)
-                                linked_dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
+                                # if uspHumidityIndigo == INDIGO_SECONDARY_DEVICE_ADDITIONAL_STATE:
+                                #     linked_dev.updateStateOnServer(key='humidityInput1', value=value, uiValue=uiValue)
+                                #     linked_dev.updateStateImageOnServer(indigo.kStateImageSel.HumiditySensor)
+                                # else:
+                                #     linked_dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
+                                if "sensorValue" in linked_dev.states:
+                                    linked_dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
+                                else:
+                                    linked_dev.updateStateOnServer(key='humidityInput1', value=value, uiValue=uiValue)
+
+                                linked_dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
+                                linked_dev.updateStateImageOnServer(indigo.kStateImageSel.HumiditySensor)
+
                                 broadcast_device_name = linked_dev.name
                         else:
                             self.hubHandlerLogger.error(u"received \"{0}\" humidity update but unable to determine how to store update?".format(broadcast_device_name))
@@ -514,7 +572,7 @@ class ThreadHubHandler(threading.Thread):
                             dev.updateStateOnServer(key='illuminance', value=value, uiValue=uiValue)
                         elif uspIlluminanceIndigo == INDIGO_SECONDARY_DEVICE:
                             # Find linked device in device group
-                            linked_dev_id = self.determine_sub_model_dev_id(dev_id, "illuminanceSensorSubModel")
+                            linked_dev_id = self.determine_secondary_device_id(dev_id, "illuminanceSensorSecondary")
                             if bool(linked_dev_id):
                                 linked_dev = indigo.devices[linked_dev_id]
                                 linked_dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
@@ -557,7 +615,7 @@ class ThreadHubHandler(threading.Thread):
                                 dev.updateStateOnServer(key='motion', value=value, uiValue=uiValue)
                             elif uspMotionIndigo == INDIGO_SECONDARY_DEVICE:
                                 # Find linked device in device group
-                                linked_dev_id = self.determine_sub_model_dev_id(dev_id, "motionSensorSubModel")
+                                linked_dev_id = self.determine_secondary_device_id(dev_id, "motionSensorSecondary")
                                 if bool(linked_dev_id):
                                     linked_dev = indigo.devices[linked_dev_id]
                                     linked_dev.updateStateOnServer(key='onOffState', value=value, uiValue=uiValue)
@@ -586,7 +644,7 @@ class ThreadHubHandler(threading.Thread):
                                 dev.updateStateOnServer(key="onOffState", value=True)
                                 if dev.deviceTypeId == "dimmer":
                                     dev.updateStateImageOnServer(indigo.kStateImageSel.DimmerOn)
-                                elif dev.deviceTypeId == "valveSubModel":
+                                elif dev.deviceTypeId == "valveSecondary":
                                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
                                 else:
                                     dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOn)
@@ -602,7 +660,7 @@ class ThreadHubHandler(threading.Thread):
                                         dev.updateStateOnServer(key='brightnessLevel', value=brightness_level, uiValue=brightness_level_ui)
                                         dev.updateStateOnServer(key='whiteLevel', value=brightness_level)
                                 elif HE_STATE_VALVE_LEVEL in self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_STATES]:
-                                    if dev.deviceTypeId == "valveSubModel":
+                                    if dev.deviceTypeId == "valveSecondary":
                                         valve_level = int(self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_STATES][HE_STATE_VALVE_LEVEL])
                                         valve_level_ui = u"{0}%".format(valve_level)
                                         dev.updateStateOnServer(key='brightnessLevel', value=valve_level, uiValue=valve_level_ui)
@@ -610,7 +668,7 @@ class ThreadHubHandler(threading.Thread):
                             # payload == "off" or payload == "false"
                             payload_ui = u"off"  # Force to Off
                             if dev.deviceTypeId != "thermostat":
-                                if dev.deviceTypeId == "dimmer" or dev.deviceTypeId == "valveSubModel":
+                                if dev.deviceTypeId == "dimmer" or dev.deviceTypeId == "valveSecondary":
                                     # Save current Valve Level before switching off
                                     if dev.brightness != 0:
                                         if HE_STATE_VALVE_LEVEL in self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_STATES]:
@@ -618,11 +676,11 @@ class ThreadHubHandler(threading.Thread):
                                     brightness_level_ui = u"0"
                                     dev.updateStateOnServer(key='brightnessLevel', value=0, uiValue=brightness_level_ui)
 
-                                    if dev.deviceTypeId == "valveSubModel":
+                                    if dev.deviceTypeId == "valveSecondary":
                                         dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
                                     elif dev.deviceTypeId == "dimmer":
-                                        # TODO: Check if whiteLevel supported
-                                        dev.updateStateOnServer(key='whiteLevel', value=0)
+                                        if bool(dev.pluginProps.get("SupportsWhite", False)):
+                                            dev.updateStateOnServer(key='whiteLevel', value=0)
 
                                         dev.updateStateImageOnServer(indigo.kStateImageSel.DimmerOff)
                                 else:
@@ -638,7 +696,7 @@ class ThreadHubHandler(threading.Thread):
                                 device_tye_ui = "dimmer"
                             elif dev.deviceTypeId == "outlet (socket)":
                                 device_tye_ui = "dimmer"
-                            elif dev.deviceTypeId == "valveSubModel":
+                            elif dev.deviceTypeId == "valveSecondary":
                                 device_tye_ui = "valve"
                             self.hubHandlerLogger.info(u"received \"{0}\" {1} \"{2}\" event".format(dev.name, device_tye_ui, payload_ui))
 
@@ -686,7 +744,7 @@ class ThreadHubHandler(threading.Thread):
                                 dev.updateStateOnServer(key='presence', value=value, uiValue=uiValue)
                             elif uspPresenceIndigo == INDIGO_SECONDARY_DEVICE:
                                 # Find linked device in device group
-                                linked_dev_id = self.determine_sub_model_dev_id(dev_id, "presenceSensorSubModel")
+                                linked_dev_id = self.determine_secondary_device_id(dev_id, "presenceSensorSecondary")
                                 if bool(linked_dev_id):
                                     linked_dev = indigo.devices[linked_dev_id]
                                     linked_dev.updateStateOnServer(key='onOffState', value=value, uiValue=uiValue)
@@ -722,7 +780,7 @@ class ThreadHubHandler(threading.Thread):
                             dev.updateStateOnServer(key='pressure', value=value, uiValue=uiValue)
                         elif uspPressureIndigo == INDIGO_SECONDARY_DEVICE:
                             # Find linked device in device group
-                            linked_dev_id = self.determine_sub_model_dev_id(dev_id, "pressureSensorSubModel")
+                            linked_dev_id = self.determine_secondary_device_id(dev_id, "pressureSensorSecondary")
                             if bool(linked_dev_id):
                                 linked_dev = indigo.devices[linked_dev_id]
                                 linked_dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
@@ -824,16 +882,26 @@ class ThreadHubHandler(threading.Thread):
 
                         broadcast_device_name = dev.name
                         if uspTemperatureIndigo == INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE:
-                            dev.updateStateOnServer(key='temperatureInput1', value=value, uiValue=uiValue)
+                            if dev.deviceTypeId == "thermostat":
+                                dev.updateStateOnServer(key='temperatureInput1', value=value, uiValue=uiValue)
+                            else:
+                                # Temperature Sensor
+                                if "sensorValue" in dev.states:
+                                    dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
+                                else:
+                                    dev.updateStateOnServer(key='temperatureInput1', value=value, uiValue=uiValue)
                             dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
                         elif uspTemperatureIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
                             dev.updateStateOnServer(key='temperature', value=value, uiValue=uiValue)
                         elif uspTemperatureIndigo == INDIGO_SECONDARY_DEVICE:
                             # Find linked device in device group
-                            linked_dev_id = self.determine_sub_model_dev_id(dev_id, "temperatureSensorSubModel")
+                            linked_dev_id = self.determine_secondary_device_id(dev_id, "temperatureSensorSecondary")
                             if bool(linked_dev_id):
                                 linked_dev = indigo.devices[linked_dev_id]
-                                linked_dev.updateStateOnServer(key='temperatureInput1', value=value, uiValue=uiValue)
+                                if "sensorValue" in linked_dev.states:
+                                    linked_dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
+                                else:
+                                    linked_dev.updateStateOnServer(key='temperatureInput1', value=value, uiValue=uiValue)
                                 linked_dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
                                 broadcast_device_name = linked_dev.name
                         else:
@@ -853,16 +921,16 @@ class ThreadHubHandler(threading.Thread):
                         except ValueError:
                             return
                         decimal_places = int(dev.pluginProps.get("uspVoltageDecimalPlaces", 0))
-                        value, uiValue = self.processDecimalPlaces(voltage, decimal_places, "Volts", INDIGO_NO_SPACE_BEFORE_UNITS)
+                        value, uiValue = self.processDecimalPlaces(voltage, decimal_places, "Volts", INDIGO_ONE_SPACE_BEFORE_UNITS)
 
                         uspVoltageIndigo = dev.pluginProps.get("uspVoltageIndigo", INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE)
 
                         broadcast_device_name = dev.name
                         if uspVoltageIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
-                            dev.updateStateOnServer(key='illuminance', value=value, uiValue=uiValue)
+                            dev.updateStateOnServer(key='voltage', value=value, uiValue=uiValue)
                         elif uspVoltageIndigo == INDIGO_SECONDARY_DEVICE:
                             # Find linked device in device group
-                            linked_dev_id = self.determine_sub_model_dev_id(dev_id, "voltageSensorSubModel")
+                            linked_dev_id = self.determine_secondary_device_id(dev_id, "voltageSensorSecondary")
                             if bool(linked_dev_id):
                                 linked_dev = indigo.devices[linked_dev_id]
                                 linked_dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
@@ -882,20 +950,20 @@ class ThreadHubHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'handle_message'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def determine_sub_model_dev_id(self, dev_id, sub_model_type_id):
+    def determine_secondary_device_id(self, dev_id, secondary_dev_type_id):
         try:
             dev_id_list = indigo.device.getGroupList(dev_id)
-            sub_model_dev_id = 0
+            secondary_dev_id = 0
             if len(dev_id_list) > 1:
-                for linked_dev_id in dev_id_list:
-                    if linked_dev_id != dev_id and indigo.devices[linked_dev_id].deviceTypeId == sub_model_type_id:
-                        sub_model_dev_id = linked_dev_id
+                for grouped_dev_id in dev_id_list:
+                    if grouped_dev_id != dev_id and indigo.devices[grouped_dev_id].deviceTypeId == secondary_dev_type_id:
+                        secondary_dev_id = grouped_dev_id
                         break
-            return sub_model_dev_id
+            return secondary_dev_id
 
         except Exception as err:
             trace_back = sys.exc_info()[2]
-            self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'determine_sub_model_dev_id'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+            self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'determine_secondary_device_id'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
     def processDecimalPlaces(self, field, decimal_places, units, space_before_units):
         try:
@@ -912,3 +980,15 @@ class ThreadHubHandler(threading.Thread):
         except Exception as err:
             trace_back = sys.exc_info()[2]
             self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'processDecimalPlaces'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+
+    def mqtt_filter_log_processing(self, hubitat_key, hub_name, topics, payload):
+        log_mqtt_msg = False  # Assume MQTT message should NOT be logged
+        # Check if MQTT message filtering required
+        if HE_MQTT_FILTERS in self.globals:
+            if len(self.globals[HE_MQTT_FILTERS]) > 0 and self.globals[HE_MQTT_FILTERS] != [u"-0-"]:
+                # As entries exist in the filter list, only log MQTT message in Hubitat device in the filter list
+                if self.globals[HE_MQTT_FILTERS] == [u"-1-"] or hubitat_key in self.globals[HE_MQTT_FILTERS]:
+                    log_mqtt_msg = True
+
+        if log_mqtt_msg:
+            self.hubHandlerLogger.topic(u"Received from '{0}': Topic='{1}', Payload='{2}'".format(hub_name, topics, payload))

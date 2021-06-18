@@ -14,6 +14,7 @@
     <Field id="hubitatPropertyContact" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyDim" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyEnergy" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyHsm" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyHumidity" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyHvacMode" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyHvacState" type="checkbox" defaultValue="false" hidden="true" />
@@ -28,6 +29,7 @@
     <Field id="hubitatPropertyTemperature" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyValve" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyVoltage" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyRefresh" type="checkbox" defaultValue="false" hidden="true" />
 
 <!-- Indigo Properties   -->
     <Field id="primaryIndigoDevice" type="textfield" defaultValue="1" hidden="true"/>
@@ -216,6 +218,29 @@
     <Field id="separator-uspEnergy" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true"/>
 
+    <!-- HSM -->
+    <Field id="space-header-uspHsm" type="label"
+           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspHsm" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">>
+        <Label>HSM</Label>
+    </Field>
+    <Field id="uspHsm" type="checkbox" defaultValue="false"
+           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">
+        <Label>Hubitat Safety Monitor:</Label>
+        <Description>Associated with Hubitat 'hsm' Property</Description>
+    </Field>
+    <Field id="uspHsmIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspHsmIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspHsm" visibleBindingValue="true" enabledBindingId="uspHsmIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="alarm" method="listDeviceStateMenuOptions"/>
+    </Field>
+    <Field id="space-uspHsm" type="label"
+           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspHsm" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"/>
+
     <!-- Humidity -->
     <Field id="space-header-uspHumidity" type="label"
            visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true"><Label/></Field>
@@ -327,6 +352,13 @@
         <Label>Indigo Device / State:</Label>
         <List class="self" filter="onoff" method="listDeviceStateMenuOptions"/>
      </Field>
+
+<!--    <Field id="uspOnOffTasmota" type="menu" defaultValue="0"-->
+<!--            visibleBindingId="uspOnOff" visibleBindingValue="true" enabledBindingId="uspOnOffIndigoEnabled">-->
+<!--        <Label>Tasmota Device Id:</Label>-->
+<!--        <List class="self" method="listTasmotaDevices"/>-->
+<!--     </Field>-->
+
     <Field id="space-uspOnOff" type="label"
            visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true"><Label/></Field>
     <Field id="separator-uspOnOff" type="separator" alwaysUseInDialogHeightCalc="true"
