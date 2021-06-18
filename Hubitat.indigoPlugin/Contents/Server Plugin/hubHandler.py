@@ -302,10 +302,9 @@ class ThreadHubHandler(threading.Thread):
                 for dev_id in self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_LINKED_INDIGO_DEVICES]:
                     dev = indigo.devices[dev_id]
                     if dev.pluginProps.get("SupportsBatteryLevel", False):
-                        dev.updateStateOnServer(key='batteryLevel', value=int(payload))
-                        self.hubHandlerLogger.info(u"received \"{0}\" status update battery level {1}".format(dev.name, payload))
-                        dev.updateStateOnServer(key='batteryLevel', value=int(payload))
-                        self.hubHandlerLogger.info(u"received \"{0}\" status update battery level {1}".format(dev.name, payload))
+                        battery_level = int(float(payload))
+                        dev.updateStateOnServer(key='batteryLevel', value=battery_level)
+                        self.hubHandlerLogger.info(u"received \"{0}\" status update battery level {1}".format(dev.name, battery_level))
 
             # Check for Button
             elif topics[3] == "button":
