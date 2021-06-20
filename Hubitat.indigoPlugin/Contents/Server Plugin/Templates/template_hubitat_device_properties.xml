@@ -68,7 +68,7 @@
     </Field>
     <Field id="uspAcceleration" type="checkbox" defaultValue="false"
             visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true">
-        <Label>Acceleration:</Label>
+        <Label>Tamper:</Label>
         <Description>Associated with Hubitat 'acceleration' Property</Description>
     </Field>
     <Field id="uspAccelerationIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>

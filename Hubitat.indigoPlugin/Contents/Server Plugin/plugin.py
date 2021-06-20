@@ -724,7 +724,7 @@ class Plugin(indigo.PluginBase):
 
                     self.process_hsm_secondary_device(dev)
 
-            elif dev.deviceTypeId == "tasmota":  # Only process if Tasmota
+            elif dev.deviceTypeId == "tasmota":  # Only process if Tasmota MQTT Client
                 if dev.enabled:
                     dev.updateStateOnServer(key='status', value="Disconnected")
                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
@@ -770,6 +770,10 @@ class Plugin(indigo.PluginBase):
 
             else:
                 # Process Indigo Hubitat Elevation device
+
+                if "[UNGROUPED @" in dev.name:
+                    self.logger.warning(u"Secondary Device '{0}' ungrouped from a Primary Device - please delete it!".format(dev.name))
+                    return
 
                 # Make Sure that device address is correct and also on related sub-models
                 dev_props = dev.pluginProps
@@ -1000,9 +1004,10 @@ class Plugin(indigo.PluginBase):
                     plugin_props["uspVoltage"] = False
                     plugin_props["uspWhiteTemperature"] = False
 
-                if type_id == "outlet":
-                    if "uspOnOffTasmota" not in plugin_props:
-                        plugin_props['uspOnOffTasmota'] = "-SELECT-"
+                # TODO: Remove this commented out obsolte code now that Tasmota Plugs are supported natively
+                # if type_id == "outlet":
+                #     if "uspOnOffTasmota" not in plugin_props:
+                #         plugin_props['uspOnOffTasmota'] = "-SELECT-"
 
             elif type_id in ("accelerationSensorSecondary", "illuminanceSensorSecondary",
                              "motionSensorSecondary", "presenceSensorSecondary", "pressureSensorSecondary",
@@ -1239,10 +1244,10 @@ class Plugin(indigo.PluginBase):
                 if values_dict["tasmotaDevice"] == "-SELECT-":
                     error_dict['tasmotaDevice'] = u"A tasmota device must be selected"
                     return False, values_dict, error_dict
+                return True, values_dict
 
             if type_id == "hubitatElevationHub":
                 values_dict["address"] = values_dict["hub_name"]
-
                 return True, values_dict
 
             # Start of Special validation for linked devices [Sub-Models]
@@ -1360,7 +1365,7 @@ class Plugin(indigo.PluginBase):
                     values_dict["allowOnStateChange"] = False
 
             elif type_id == "multiSensor":
-                # Motion Sensor validation and option settings
+                # Multi Sensor validation and option settings
                 if not values_dict.get("uspMotion", False):
                     error_message = u"An Indigo Multi-Sensor device requires an association to the Hubitat 'motion' property"
                     error_dict['uspMotion'] = error_message
@@ -1950,59 +1955,58 @@ class Plugin(indigo.PluginBase):
 
     def optionally_set_indigo_2021_device_sub_type(self, dev):
         try:
-            if float(indigo.server.apiVersion) >= 2.5:
-                if dev.deviceTypeId == "contactSensor":
-                    if dev.subType != indigo.kSensorDeviceSubType.DoorWindow:
-                        dev.subType = indigo.kSensorDeviceSubType.DoorWindow
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "dimmer":
-                    if dev.ownerProps.get("SupportsColor", False):
-                        dev_subtype_to_test_against = indigo.kDimmerDeviceSubType.ColorDimmer
-                    else:
-                        dev_subtype_to_test_against = indigo.kDimmerDeviceSubType.Dimmer
-                    if dev.subType != dev_subtype_to_test_against:
-                        dev.subType = dev_subtype_to_test_against
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "humiditySensor" or dev.deviceTypeId == "humiditySensorSecondary":
-                    if dev.subType != indigo.kSensorDeviceSubType.Humidity:
-                        dev.subType = indigo.kSensorDeviceSubType.Humidity
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "motionSensor" or dev.deviceTypeId == "multiSensor" or dev.deviceTypeId == "motionSensorSecondary":
-                    if dev.subType != indigo.kSensorDeviceSubType.Motion:
-                        dev.subType = indigo.kSensorDeviceSubType.Motion
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "outlet":
-                    if dev.subType != indigo.kRelayDeviceSubType.Outlet:
-                        dev.subType = indigo.kRelayDeviceSubType.Outlet
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "temperatureSensor" or dev.deviceTypeId == "temperatureSensorSecondary":
-                    if dev.subType != indigo.kSensorDeviceSubType.Temperature:
-                        dev.subType = indigo.kSensorDeviceSubType.Temperature
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "accelerationSensorSecondary":
-                    if dev.subType != indigo.kDeviceSubType.Security:
-                        dev.subType = indigo.kDeviceSubType.Security
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "illuminanceSensorSecondary":
-                    if dev.subType != indigo.kSensorDeviceSubType.Illuminance:
-                        dev.subType = indigo.kSensorDeviceSubType.Illuminance
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "presenceSensorSecondary":
-                    if dev.subType != indigo.kSensorDeviceSubType.Presence:
-                        dev.subType = indigo.kSensorDeviceSubType.Presence
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "pressureSensorSecondary":
-                    if dev.subType != indigo.kSensorDeviceSubType.Pressure:
-                        dev.subType = indigo.kSensorDeviceSubType.Pressure
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "valveSecondary":
-                    if dev.subType != indigo.kDimmerDeviceSubType.Valve:
-                        dev.subType = indigo.kDimmerDeviceSubType.Valve
-                        dev.replaceOnServer()
-                elif dev.deviceTypeId == "voltageSensorSecondary":
-                    if dev.subType != indigo.kSensorDeviceSubType.Voltage:
-                        dev.subType = indigo.kSensorDeviceSubType.Voltage
-                        dev.replaceOnServer()
+            if dev.deviceTypeId == "contactSensor":
+                if dev.subType != indigo.kSensorDeviceSubType.DoorWindow:
+                    dev.subType = indigo.kSensorDeviceSubType.DoorWindow
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "dimmer":
+                if dev.ownerProps.get("SupportsColor", False):
+                    dev_subtype_to_test_against = indigo.kDimmerDeviceSubType.ColorDimmer
+                else:
+                    dev_subtype_to_test_against = indigo.kDimmerDeviceSubType.Dimmer
+                if dev.subType != dev_subtype_to_test_against:
+                    dev.subType = dev_subtype_to_test_against
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "humiditySensor" or dev.deviceTypeId == "humiditySensorSecondary":
+                if dev.subType != indigo.kSensorDeviceSubType.Humidity:
+                    dev.subType = indigo.kSensorDeviceSubType.Humidity
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "motionSensor" or dev.deviceTypeId == "multiSensor" or dev.deviceTypeId == "motionSensorSecondary":
+                if dev.subType != indigo.kSensorDeviceSubType.Motion:
+                    dev.subType = indigo.kSensorDeviceSubType.Motion
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "outlet":
+                if dev.subType != indigo.kRelayDeviceSubType.Outlet:
+                    dev.subType = indigo.kRelayDeviceSubType.Outlet
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "temperatureSensor" or dev.deviceTypeId == "temperatureSensorSecondary":
+                if dev.subType != indigo.kSensorDeviceSubType.Temperature:
+                    dev.subType = indigo.kSensorDeviceSubType.Temperature
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "accelerationSensorSecondary":
+                if dev.subType != indigo.kDeviceSubType.Security:
+                    dev.subType = indigo.kDeviceSubType.Security
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "illuminanceSensorSecondary":
+                if dev.subType != indigo.kSensorDeviceSubType.Illuminance:
+                    dev.subType = indigo.kSensorDeviceSubType.Illuminance
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "presenceSensorSecondary":
+                if dev.subType != indigo.kSensorDeviceSubType.Presence:
+                    dev.subType = indigo.kSensorDeviceSubType.Presence
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "pressureSensorSecondary":
+                if dev.subType != indigo.kSensorDeviceSubType.Pressure:
+                    dev.subType = indigo.kSensorDeviceSubType.Pressure
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "valveSecondary":
+                if dev.subType != indigo.kDimmerDeviceSubType.Valve:
+                    dev.subType = indigo.kDimmerDeviceSubType.Valve
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "voltageSensorSecondary":
+                if dev.subType != indigo.kSensorDeviceSubType.Voltage:
+                    dev.subType = indigo.kSensorDeviceSubType.Voltage
+                    dev.replaceOnServer()
 
         except StandardError as standard_error_message:
             self.logger.error(u"Error detected in 'plugin' method 'optionally_set_indigo_2021_device_sub_type'. Line '{0}' has error='{1}'"
@@ -2115,70 +2119,70 @@ class Plugin(indigo.PluginBase):
                 return
 
             hsm_type_id = "hsmSensorSecondary"
-            if hub_dev_sub_type is not None:  # If sunType property supported for primary device - assume supported on Secondary
-                uspIndigo_Name = INDIGO_SUB_TYPE_INFO[hsm_type_id][1][0]
+            if hub_dev_sub_type is not None:  # If subType property supported for primary device - assume supported on Secondary
+                usp_indigo = INDIGO_SUB_TYPE_INFO[hsm_type_id][1][0]
             else:
-                uspIndigo_Name = INDIGO_SUB_TYPE_INFO[hsm_type_id][1][1]
+                usp_indigo = INDIGO_SUB_TYPE_INFO[hsm_type_id][1][1]
 
-                # Create Secondary HSM Device
+            # Create Secondary HSM Device
 
-                secondary_name = u"{0} [{1}]".format(hub_dev.name, uspIndigo_Name)  # Create default name
-                # Check name is unique and if not, make it so
-                if secondary_name in indigo.devices:
-                    name_check_count = 1
-                    while True:
-                        check_name = u"{0}_{1}".format(secondary_name, name_check_count)
-                        if check_name not in indigo.devices:
-                            secondary_name = check_name
-                            break
-                        name_check_count += 1
+            secondary_name = u"{0} [{1}]".format(hub_dev.name, usp_indigo)  # Create default name
+            # Check name is unique and if not, make it so
+            if secondary_name in indigo.devices:
+                name_check_count = 1
+                while True:
+                    check_name = u"{0}_{1}".format(secondary_name, name_check_count)
+                    if check_name not in indigo.devices:
+                        secondary_name = check_name
+                        break
+                    name_check_count += 1
 
-                required_props_list = INDIGO_SUB_TYPE_INFO[hsm_type_id][2]
-                props_dict = dict()
-                props_dict["hubitatHubName"] = hub_dev.address
-                props_dict["hubitatPropertiesInitialised"] = True
-                props_dict["member_of_device_group"] = True
-                props_dict["linkedPrimaryIndigoDeviceId"] = hub_dev.id
-                props_dict["linkedPrimaryIndigoDevice"] = hub_dev.name
-                props_dict["associatedHubitatDevice"] = "hub"
+            required_props_list = INDIGO_SUB_TYPE_INFO[hsm_type_id][2]
+            props_dict = dict()
+            props_dict["hubitatHubName"] = hub_dev.address
+            props_dict["hubitatPropertiesInitialised"] = True
+            props_dict["member_of_device_group"] = True
+            props_dict["linkedPrimaryIndigoDeviceId"] = hub_dev.id
+            props_dict["linkedPrimaryIndigoDevice"] = hub_dev.name
+            props_dict["associatedHubitatDevice"] = "hub"
 
-                for key, value in required_props_list:
-                    props_dict[key] = value
+            for key, value in required_props_list:
+                props_dict[key] = value
 
-                hsm_secondary_device = indigo.device.create(protocol=indigo.kProtocol.Plugin,
-                                                            address=hub_dev.address,
-                                                            description="",
-                                                            name=secondary_name,
-                                                            folder=hub_dev.folderId,
-                                                            pluginId="com.autologplugin.indigoplugin.hubitat",
-                                                            deviceTypeId=hsm_type_id,
-                                                            groupWithDevice=hub_dev_id,
-                                                            props=props_dict)
+            hsm_secondary_device = indigo.device.create(protocol=indigo.kProtocol.Plugin,
+                                                        address=hub_dev.address,
+                                                        description="",
+                                                        name=secondary_name,
+                                                        folder=hub_dev.folderId,
+                                                        pluginId="com.autologplugin.indigoplugin.hubitat",
+                                                        deviceTypeId=hsm_type_id,
+                                                        groupWithDevice=hub_dev_id,
+                                                        props=props_dict)
 
-                # Manually need to set the model and subModel names (for UI only)
-                hsm_dev_id = hsm_secondary_device.id
-                hsm_secondary_device = indigo.devices[hsm_dev_id]  # Refresh Indigo Device to ensure groupWithDevice isn't removed
-                hsm_secondary_device.model = hub_dev.model
+            # Manually need to set the model and subModel names (for UI only)
+            hsm_dev_id = hsm_secondary_device.id
+            hsm_secondary_device = indigo.devices[hsm_dev_id]  # Refresh Indigo Device to ensure groupWithDevice isn't removed
+            hsm_secondary_device.model = hub_dev.model
 
-                if hasattr(hsm_secondary_device, "subType"):
-                    hsm_secondary_device.subType = ""
-                else:
-                    hsm_secondary_device.subModel = uspIndigo_Name
+            if hasattr(hsm_secondary_device, "subType"):
+                hsm_secondary_device.subType = ""
+            else:
+                hsm_secondary_device.subModel = usp_indigo
 
-                hsm_secondary_device.configured = True
-                hsm_secondary_device.enabled = True
-                hsm_secondary_device.replaceOnServer()
+            hsm_secondary_device.configured = True
+            hsm_secondary_device.enabled = True
+            hsm_secondary_device.replaceOnServer()
 
-                hub_dev = indigo.devices[hub_dev_id]  # Refresh Indigo Device to ensure groupWith Device isn't removed
+            hub_dev = indigo.devices[hub_dev_id]  # Refresh Indigo Device to ensure groupWith Device isn't removed
 
-                if hasattr(hub_dev, "subType"):
-                    if hub_dev.subType != INDIGO_PRIMARY_DEVICE_INFO[hub_dev_type_id][0]:
-                        hub_dev.subType = INDIGO_PRIMARY_DEVICE_INFO[hub_dev_type_id][0]
-                        hub_dev.replaceOnServer()
-                else:
-                    if hub_dev.subModel != INDIGO_PRIMARY_DEVICE_INFO[hub_dev_type_id][1]:
-                        hub_dev.subModel = INDIGO_PRIMARY_DEVICE_INFO[hub_dev_type_id][1]
-                        hub_dev.replaceOnServer()
+            if hasattr(hub_dev, "subType"):
+                if hub_dev.subType != INDIGO_PRIMARY_DEVICE_INFO[hub_dev_type_id][0]:
+                    hub_dev.subType = INDIGO_PRIMARY_DEVICE_INFO[hub_dev_type_id][0]
+                    hub_dev.replaceOnServer()
+            else:
+                if hub_dev.subModel != INDIGO_PRIMARY_DEVICE_INFO[hub_dev_type_id][1]:
+                    hub_dev.subModel = INDIGO_PRIMARY_DEVICE_INFO[hub_dev_type_id][1]
+                    hub_dev.replaceOnServer()
 
         except StandardError, err:
             self.logger.error(u"Error detected in 'plugin' method 'process_hsm_secondary_device'. Line '{0}' has error='{1}'"
@@ -2202,26 +2206,34 @@ class Plugin(indigo.PluginBase):
 
             # At this point we have created a dictionary of sub-model types with their associated Indigo device Ids
 
-            props = primary_dev.pluginProps
-            hubitat_device_name = props["hubitatDevice"]
+            primary_dev_props = primary_dev.pluginProps
+            hubitat_device_name = primary_dev_props["hubitatDevice"]
+
+            pass
 
             for secondary_type_id in INDIGO_SUPPORTED_SUB_TYPES_BY_DEVICE[primary_dev_type_id]:
+
                 # note "usp" prefix stands for "User Selectable Property" :)
-                uspIndigo = INDIGO_SUB_TYPE_INFO[secondary_type_id][0]
+                usp_indigo_name = INDIGO_SUB_TYPE_INFO[secondary_type_id][0]  # e.g. "uspIlluminanceIndigo"
 
-                if hasattr(primary_dev, "subType"):  # If subType property supported for primary device - assume supported on Secondary
-                    uspIndigo_Name = INDIGO_SUB_TYPE_INFO[secondary_type_id][1][0]
-                else:
-                    uspIndigo_Name = INDIGO_SUB_TYPE_INFO[secondary_type_id][1][1]
+                usp_native = usp_indigo_name[:-6]  # Remove 'Indigo' from usp e.g. "uspIlluminanceIndigo" . "uspIlluminance"
 
-                if props.get(uspIndigo, INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE) != INDIGO_SECONDARY_DEVICE:
-                    # At this point the state associated with the property is not required in a secondary device ...
-                    # ... therefore, if it exists, remove it.
+                # TODO: CHECK FOR USP = TRUE
+                usp_required = False
+                if usp_native in primary_dev_props and primary_dev_props[usp_native]:
+                    usp_required = True
+
+                if not usp_required or primary_dev_props.get(usp_indigo_name, INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE) != INDIGO_SECONDARY_DEVICE:
+                    # At this point the property is not required or
+                    #   the state associated with the property is not required in a secondary device
+                    #   therefore, if it exists, remove it.
                     if secondary_type_id in existing_secondary_devices:
                         secondary_device_id = existing_secondary_devices[secondary_type_id]
                         secondary_dev = indigo.devices[secondary_device_id]
+
                         indigo.device.ungroupDevice(secondary_dev)
                         secondary_dev.refreshFromServer()
+                        primary_dev.refreshFromServer()
 
                         secondary_dev_props = secondary_dev.ownerProps
                         secondary_dev_props["member_of_device_group"] = False  # Reset to False as no longer a member of a device group
@@ -2233,13 +2245,29 @@ class Plugin(indigo.PluginBase):
                         secondary_dev.replaceOnServer()
 
                         self.logger.warning(u"Secondary Device '{0}' ungrouped from Primary Device '{1}' - please delete it!".format(secondary_dev.name, primary_dev.name))
-                        return
+
+                        if hubitat_device_name in self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES]:
+                            if HE_LINKED_INDIGO_DEVICES in self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES][hubitat_device_name]:
+                                if secondary_device_id in self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_LINKED_INDIGO_DEVICES]:
+                                    del self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_LINKED_INDIGO_DEVICES][secondary_device_id]
+
                 else:
+                    # TODO: CHECK FOR USP = TRUE
+                    if not usp_required:
+                        continue  # As property not required, continue to check next secondary device type
+
                     if secondary_type_id not in existing_secondary_devices:
 
                         # Create Secondary Device
 
-                        secondary_name = u"{0} [{1}]".format(primary_dev.name, uspIndigo_Name)  # Create default name
+                        # TODO: ONLY CREATE IF IT IS REQUIRED - NEED TO CHECK USP SETTING I.E. IS PROPERTY REQUIRED OR VALID
+
+                        if hasattr(primary_dev, "subType"):  # If subType property supported for primary device - assume supported on Secondary
+                            usp_indigo_name = INDIGO_SUB_TYPE_INFO[secondary_type_id][1][0]
+                        else:
+                            usp_indigo_name = INDIGO_SUB_TYPE_INFO[secondary_type_id][1][1]
+
+                        secondary_name = u"{0} [{1}]".format(primary_dev.name, usp_indigo_name)  # Create default name
                         # Check name is unique and if not, make it so
                         if secondary_name in indigo.devices:
                             name_check_count = 1
@@ -2265,7 +2293,7 @@ class Plugin(indigo.PluginBase):
                         primary_props = primary_dev.ownerProps
                         primary_hubitat_device = primary_props["hubitatDevice"]
 
-                        sub_model_device = indigo.device.create(protocol=indigo.kProtocol.Plugin,
+                        secondary_dev = indigo.device.create(protocol=indigo.kProtocol.Plugin,
                                                                 address=primary_hubitat_device,
                                                                 description="",
                                                                 name=secondary_name,
@@ -2276,29 +2304,38 @@ class Plugin(indigo.PluginBase):
                                                                 props=props_dict)
 
                         # Manually need to set the model and subModel names (for UI only)
-                        secondary_dev_id = sub_model_device.id
-                        sub_model_device = indigo.devices[secondary_dev_id]  # Refresh Indigo Device to ensure groupWith Device isn't removed
-                        sub_model_device.model = primary_dev.model
+                        secondary_dev_id = secondary_dev.id
+                        secondary_dev = indigo.devices[secondary_dev_id]  # Refresh Indigo Device to ensure groupWith Device isn't removed
 
-                        if hasattr(sub_model_device, "subType"):
-                            sub_model_device.subType = ""
-                        else:
-                            sub_model_device.subModel = uspIndigo_Name
+                        self.optionally_set_indigo_2021_device_sub_type(secondary_dev)
 
-                        sub_model_device.configured = True
-                        sub_model_device.enabled = True
-                        sub_model_device.replaceOnServer()
+                        if hubitat_device_name not in self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES]:
+                            self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES][hubitat_device_name] = dict()  # Hubitat device name
+                        if HE_LINKED_INDIGO_DEVICES not in self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES][hubitat_device_name]:
+                            self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_LINKED_INDIGO_DEVICES] = dict()
+                        self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_LINKED_INDIGO_DEVICES][secondary_dev_id] = secondary_dev_id
 
-                        dev = indigo.devices[primary_dev_id]  # Refresh Indigo Device to ensure groupWith Device isn't removed
-
-                        if hasattr(primary_dev, "subType"):
-                            if dev.subType != INDIGO_PRIMARY_DEVICE_INFO[primary_dev_type_id][0]:
-                                dev.subType = INDIGO_PRIMARY_DEVICE_INFO[primary_dev_type_id][0]
-                                dev.replaceOnServer()
-                        else:
-                            if dev.subModel != INDIGO_PRIMARY_DEVICE_INFO[primary_dev_type_id][1]:
-                                dev.subModel = INDIGO_PRIMARY_DEVICE_INFO[primary_dev_type_id][1]
-                                dev.replaceOnServer()
+                        # sub_model_device.model = primary_dev.model
+                        #
+                        # if hasattr(sub_model_device, "subType"):
+                        #     sub_model_device.subType = ""
+                        # else:
+                        #     sub_model_device.subModel = usp_indigo_name
+                        #
+                        # sub_model_device.configured = True
+                        # sub_model_device.enabled = True
+                        # sub_model_device.replaceOnServer()
+                        #
+                        # dev = indigo.devices[primary_dev_id]  # Refresh Indigo Device to ensure groupWith Device isn't removed
+                        #
+                        # if hasattr(primary_dev, "subType"):
+                        #     if dev.subType != INDIGO_PRIMARY_DEVICE_INFO[primary_dev_type_id][0]:
+                        #         dev.subType = INDIGO_PRIMARY_DEVICE_INFO[primary_dev_type_id][0]
+                        #         dev.replaceOnServer()
+                        # else:
+                        #     if dev.subModel != INDIGO_PRIMARY_DEVICE_INFO[primary_dev_type_id][1]:
+                        #         dev.subModel = INDIGO_PRIMARY_DEVICE_INFO[primary_dev_type_id][1]
+                        #         dev.replaceOnServer()
 
         except StandardError, err:
             self.logger.error(u"Error detected in 'plugin' method 'process_sub_models'. Line '{0}' has error='{1}'"
