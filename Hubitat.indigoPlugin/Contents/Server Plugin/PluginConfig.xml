@@ -8,6 +8,17 @@
         <Label>Copyright © 2021 Autolog</Label>
     </Field>
 
+	<Field id="space_0" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="separator-0" type="separator" alwaysUseInDialogHeightCalc="true"/>
+	<Field id="header-0" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>MQTT GLOBAL CONFIGURATION</Label>
+    </Field>
+
+    <Field id="mqttClientPrefix" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT CLIENT PREFIX:</Label>
+    </Field>
+
 	<Field id="space_1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
 
     <Field id="separator-1" type="separator" alwaysUseInDialogHeightCalc="true"/>

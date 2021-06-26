@@ -152,9 +152,6 @@
                 <ControlPageLabel>Tasmota Update Time</ControlPageLabel>
             </State>
         </States>
-
-
-
 	</Device>
 
 <!--

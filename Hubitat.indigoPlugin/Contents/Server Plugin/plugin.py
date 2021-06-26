@@ -10,9 +10,11 @@
 from datetime import datetime
 import logging
 import platform
+import re
 import socket
 import sys
 import threading
+import time
 
 
 # ============================== Custom Imports ===============================
@@ -40,7 +42,7 @@ class Plugin(indigo.PluginBase):
     def __init__(self, plugin_id, plugin_display_name, plugin_version, plugin_prefs):
         super(Plugin, self).__init__(plugin_id, plugin_display_name, plugin_version, plugin_prefs)
 
-        self.computer_name = socket.gethostbyaddr(socket.gethostname())[0].split(".")[0]  # Used in creation of MQTT Client Id
+        self.mqtt_client_prefix = ""
 
         logging.addLevelName(K_LOG_LEVEL_TOPIC, "topic")
 
@@ -91,12 +93,11 @@ class Plugin(indigo.PluginBase):
 
         self.globals[TASMOTA] = dict()
         self.globals[TASMOTA][TASMOTA_DEVICES] = dict()
+        self.globals[TASMOTA][TASMOTA_QUEUE] = dict()
         self.globals[TASMOTA_MQTT_FILTERS] = list()
 
         # Set Plugin Config Values
         self.closedPrefsConfigUi(plugin_prefs, False)
-
-
 
         for dev in indigo.devices.iter("self"):
             if dev.deviceTypeId == "hubitatElevationHub":  # Only process if Hub
@@ -108,15 +109,39 @@ class Plugin(indigo.PluginBase):
                         self.globals[HE_HUBS][hubitat_hub_name][HE_INDIGO_HUB_ID] = dev.id
                         self.globals[HE_HUBS][hubitat_hub_name][HE_DEVICES] = dict()
 
-
         self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS] = dict()
         for dev in indigo.devices.iter("self"):
             if dev.deviceTypeId == "tasmotaOutlet":  # Only process if a Tasmota Outlet
                 if dev.enabled:
-                    props = dev.ownerProps
-                    tasmota_key = props.get("tasmotaDevice", "-SELECT-")
-                    if tasmota_key != "-SELECT-":
-                        self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS][tasmota_key] = dev.id
+                    tasmota_key = dev.address
+                    self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS][tasmota_key] = dev.id
+
+                    if tasmota_key not in self.globals[TASMOTA][TASMOTA_DEVICES]:
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key] = dict()
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_DISCOVERY_DETAILS] = False
+
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] = dev.id
+                    self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS][tasmota_key] = dev.id
+
+                    # self.logger.error(u"Tasmota List = '{0}', Dev ID = '{1}', Dev Name = '{2}':\n{3}".format(tasmota_key, dev.id, dev.name, self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key]))
+
+                    if not self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_DISCOVERY_DETAILS]:
+                        # Default Tasmota device internal store
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_POWER] = False
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE] = "n/a"
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME] = ""
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_DEVICE_NAME] = ""
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC] = ""
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL] = ""
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_T] = ""
+
+                        # Update  Tasmota device internal store from Indigo device
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME] = dev.states[u"friendlyName"]
+                        # self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_DEVICE_NAME] = tasmota_dev.states["friendlyName"]
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC] = dev.states[u"macAddress"]
+                        self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL] = dev.states[u"model"]
+                        # self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_T] = tasmota_dev.states["friendlyName"]
+                dev.setErrorStateOnServer(u"offline")
 
     def actionControlDevice(self, action, dev):
         try:
@@ -610,6 +635,8 @@ class Plugin(indigo.PluginBase):
             if user_cancelled:
                 return
 
+            self.mqtt_client_prefix = values_dict.get("mqttClientPrefix", "DEFAULT")
+
             # Get required Event Log and Plugin Log logging levels
             plugin_log_level = int(values_dict.get("pluginLogLevel", K_LOG_LEVEL_INFO))
             event_log_level = int(values_dict.get("eventLogLevel", K_LOG_LEVEL_INFO))
@@ -712,7 +739,7 @@ class Plugin(indigo.PluginBase):
                     self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_BROKER_IP] = hub_props["mqtt_broker_ip"]
                     self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_BROKER_PORT] = int(hub_props["mqtt_broker_port"])
                     self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_CLIENT] = None
-                    self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_CLIENT_ID] = u"{0}-INDIGO-HUBITAT-{1}".format(self.computer_name.upper(), hubitat_hub_name.upper())
+                    self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_CLIENT_ID] = u"{0}-INDIGO-HUBITAT-{1}".format(self.mqtt_client_prefix.upper(), hubitat_hub_name.upper())
                     self.logger.debug(u"MQTT CLIENT ID: {0}".format(self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_CLIENT_ID]))
                     self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_MESSAGE_SEQUENCE] = 0
                     self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_TOPIC] = u"{0}/{1}/#".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name)
@@ -738,7 +765,7 @@ class Plugin(indigo.PluginBase):
                     self.globals[TASMOTA][TASMOTA_MQTT_BROKER_IP] = tasmota_props["mqtt_broker_ip"]
                     self.globals[TASMOTA][TASMOTA_MQTT_BROKER_PORT] = int(tasmota_props["mqtt_broker_port"])
                     self.globals[TASMOTA][TASMOTA_MQTT_CLIENT] = None
-                    self.globals[TASMOTA][TASMOTA_MQTT_CLIENT_ID] = u"{0}-INDIGO-HUBITAT-TASMOTA".format(self.computer_name.upper())
+                    self.globals[TASMOTA][TASMOTA_MQTT_CLIENT_ID] = u"{0}-INDIGO-HUBITAT-TASMOTA".format(self.mqtt_client_prefix.upper())
                     self.logger.debug(u"MQTT CLIENT ID: {0}".format(self.globals[TASMOTA][TASMOTA_MQTT_CLIENT_ID]))
                     self.globals[TASMOTA][TASMOTA_MQTT_MESSAGE_SEQUENCE] = 0
                     self.globals[TASMOTA][TASMOTA_MQTT_TOPICS] = list()
@@ -751,6 +778,8 @@ class Plugin(indigo.PluginBase):
                     self.globals[TASMOTA][TASMOTA_THREAD] = ThreadTasmotaHandler(self.globals, dev.id, self.globals[TASMOTA][TASMOTA_EVENT])
                     self.globals[TASMOTA][TASMOTA_THREAD].start()
 
+                    self.sleep(2)
+
             elif dev.deviceTypeId == "tasmotaOutlet":  # Only process if Tasmota Outlet
                 if float(indigo.server.apiVersion) >= 2.5:
                     if dev.subType != indigo.kRelayDeviceSubType.Outlet:
@@ -761,13 +790,66 @@ class Plugin(indigo.PluginBase):
                 tasmota_key = dev_props.get("tasmotaDevice", "-SELECT-")
                 if tasmota_key != "-SELECT-":
                     if dev.address != tasmota_key:
-                        self.logger.warning(u"Indigo Tasmota Device {0} address updated from '{1}' to '{2}"
-                                            .format(dev.name, dev.address, tasmota_key))
+                        # self.logger.warning(u"Indigo Tasmota Device {0} address updated from '{1}' to '{2}"
+                        #                     .format(dev.name, dev.address, tasmota_key))
                         dev_props["address"] = tasmota_key
                         dev.replacePluginPropsOnServer(dev_props)
-                    if tasmota_key in self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS]:
-                        self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS][tasmota_key] = dev.id
 
+                if tasmota_key not in self.globals[TASMOTA][TASMOTA_DEVICES]:
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key] = dict()
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_DISCOVERY_DETAILS] = False
+
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] = dev.id
+                self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS][tasmota_key] = dev.id
+
+                # self.logger.error(u"Tasmota List = '{0}', Dev ID = '{1}', Dev Name = '{2}':\n{3}".format(tasmota_key, dev.id, dev.name, self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key]))
+
+                if not self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_DISCOVERY_DETAILS]:
+                    # Default Tasmota device internal store
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_POWER] = False
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE] = "n/a"
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME] = ""
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_DEVICE_NAME] = ""
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC] = ""
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL] = ""
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_T] = ""
+
+                    # Update  Tasmota device internal store from Indigo device
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME] = dev.states[u"friendlyName"]
+                    # self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_DEVICE_NAME] = tasmota_dev.states["friendlyName"]
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC] = dev.states[u"macAddress"]
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL] = dev.states[u"model"]
+                    # self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_T] = tasmota_dev.states["friendlyName"]
+
+                    key_value_list = list()
+                    key_value_list.append({u"key": u"onOffState", u"value": False})
+                    key_value_list.append({u"key": u"lwt", u"value": u"Offline"})
+                    dev.updateStatesOnServer(key_value_list)
+                    dev.setErrorStateOnServer(u"offline")
+                else:
+                    key_value_list = list()
+                    key_value_list.append({u"key": u"friendlyName", u"value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME]})
+                    key_value_list.append({u"key": u"ipAddress", u"value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_IP_ADDRESS]})
+                    key_value_list.append({u"key": u"macAddress", u"value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC]})
+                    key_value_list.append({u"key": u"model", u"value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL]})
+                    dev.updateStatesOnServer(key_value_list)
+                    dev.setErrorStateOnServer(u"offline")
+
+                    props = dev.ownerProps
+                    firmware = props.get(u"version", "")
+                    if firmware != self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE]:
+                        props[u"version"] = self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE]
+                        dev.replacePluginPropsOnServer(props)
+
+                if TASMOTA_MQTT_INITIALISED in self.globals[TASMOTA] and self.globals[TASMOTA][TASMOTA_MQTT_INITIALISED]:
+                    topic = u"cmnd/tasmota_{0}/Power".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Power"
+                    topic_payload = u""  # No payload returns status
+                    self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
+                    topic = u"cmnd/tasmota_{0}/Status".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Status"
+                    topic_payload = "8"  # Show power usage
+                    self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
+                else:
+                    self.globals[TASMOTA][TASMOTA_QUEUE][tasmota_key] = dev.id
             else:
                 # Process Indigo Hubitat Elevation device
 
@@ -1148,12 +1230,19 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'getDeviceStateList'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
-    # def getPrefsConfigUiValues(self):
-    #     prefs_config_ui_values = self.pluginPrefs
-    #
-    #     pass
-    #
-    #     return prefs_config_ui_values
+    def getPrefsConfigUiValues(self):
+        prefs_config_ui_values = self.pluginPrefs
+
+        if "mqttClientPrefix" not in prefs_config_ui_values:
+            prefs_config_ui_values["mqttClientPrefix"] = ""
+        if prefs_config_ui_values["mqttClientPrefix"] == "":
+            try:
+                # As MQTT CLIENT PREFIX is empty, try setting it to Computer Name
+                prefs_config_ui_values["mqttClientPrefix"] = socket.gethostbyaddr(socket.gethostname())[0].split(".")[0]  # Used in creation of MQTT Client Id
+            except:
+                pass
+
+        return prefs_config_ui_values
 
     def refreshUiCallback(self, valuesDict, typeId="", devId=None):
         errorsDict = indigo.Dict()
@@ -1225,10 +1314,7 @@ class Plugin(indigo.PluginBase):
 
     def startup(self):
         try:
-            if len(self.globals[HE_HUBS]) == 0:
-                self.logger.warning(u"No Hubitat Elevation Hubs have yet been defined as Indigo devices. Plugin is unable to work until some are!")
-                return
-
+            pass
         except StandardError as standard_error_message:
             self.logger.error(u"Error detected in 'plugin' method 'startup'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
@@ -1439,6 +1525,28 @@ class Plugin(indigo.PluginBase):
                               .format(indigo.devices[dev_id].name, sys.exc_traceback.tb_lineno, standard_error_message))
 
     def validatePrefsConfigUi(self, values_dict):
+
+        mqtt_client_prefix = values_dict.get("mqttClientPrefix", "")
+
+        mqtt_client_prefix_is_valid = True
+
+        if len(mqtt_client_prefix) == 0:
+            mqtt_client_prefix_is_valid = False
+        else:
+            regex = r"^[a-zA-Z0-9_-]+"
+            match = re.match(regex, mqtt_client_prefix)
+            if match is None:
+                mqtt_client_prefix_is_valid = False
+            else:
+                if not mqtt_client_prefix[0].isalpha():
+                    mqtt_client_prefix_is_valid = False
+
+        if not mqtt_client_prefix_is_valid:
+            error_message = u"MQTT Client Prefix must be made up of the characters [A-Z], [a-z], [0-9], [-] or [_] and start with an alpha."
+            error_dict = indigo.Dict()
+            error_dict['uspTemperature'] = error_message
+            error_dict["showAlertText"] = error_message
+            return (False, values_dict, error_dict)
 
         if len(values_dict["mqttHubitatMessageFilter"]) == 0:
             values_dict["mqttHubitatMessageFilter"] = ["-0-"]  # '-- Don't Log Any Devices --'
@@ -1892,11 +2000,20 @@ class Plugin(indigo.PluginBase):
 
             self.logger.debug(u"MQTT List Tasmota Devices [1]")
 
-            tasmota_devices_list.append(("-SELECT-", "-- None --"))
+            tasmota_devices_list.append((u"-SELECT-", u"-- None --"))
 
             for tasmota_key, tasmota_device_details in self.globals[TASMOTA][TASMOTA_DEVICES].items():
-                tasmota_ui_name = u"{0} [{1}]".format(tasmota_device_details[TASMOTA_PAYLOAD_FRIENDLY_NAME], tasmota_key)
-                tasmota_devices_list.append((tasmota_key, tasmota_ui_name))
+                # Only list current Tasmota device and unallocated Tasmota devices
+                if (tasmota_device_details[TASMOTA_INDIGO_DEVICE_ID] == 0 or
+                        tasmota_device_details[TASMOTA_INDIGO_DEVICE_ID] == targetId):
+                    # indigo_id = tasmota_device_details[TASMOTA_INDIGO_DEVICE_ID]
+                    # self.logger.warning(u"Tasmota List = '{0}', Indigo ID = '{1}', TargetId = '{2}':\n{3}".format(tasmota_key, indigo_id, targetId, tasmota_device_details))
+
+                    if tasmota_device_details[TASMOTA_PAYLOAD_FRIENDLY_NAME] != "":
+                        tasmota_ui_name = u"{0} [{1}]".format(tasmota_device_details[TASMOTA_PAYLOAD_FRIENDLY_NAME], tasmota_key)
+                    else:
+                        tasmota_ui_name = u"Undiscovered? [{0}]".format(tasmota_key)
+                    tasmota_devices_list.append((tasmota_key, tasmota_ui_name))
             return sorted(tasmota_devices_list, key=lambda name: name[1].lower())   # sort by Tasmota Key device name
         except StandardError as standard_error_message:
             self.logger.error(u"Error detected in 'plugin' method 'listTasmotaDevices'. Line '{0}' has error='{1}'"
@@ -1935,12 +2052,15 @@ class Plugin(indigo.PluginBase):
             tasmota_devices_list.append((u"-1-|||-- Log All Devices --", u"-- Log All Devices --"))
 
             for tasmota_key, tasmota_device_details in self.globals[TASMOTA][TASMOTA_DEVICES].items():
+                # self.logger.warning(u"TK = '{0}', TDD:\n{1}".format(tasmota_key, tasmota_device_details))
                 tasmota_friendly_name = u"{0}".format(tasmota_device_details[TASMOTA_PAYLOAD_FRIENDLY_NAME])
+                if tasmota_friendly_name == "":
+                    tasmota_friendly_name = u"Undiscovered: {0}".format(tasmota_key)
                 tasmota_full_key = u"{0}|||{1}".format(tasmota_key, tasmota_friendly_name)
                 tasmota_devices_list.append((tasmota_full_key, tasmota_friendly_name))
             return sorted(tasmota_devices_list, key=lambda name: name[1].lower())   # sort by Tasmota Key device name
         except StandardError as standard_error_message:
-            self.logger.error(u"Error detected in 'plugin' method 'mqttListHubitatDevices'. Line '{0}' has error='{1}'"
+            self.logger.error(u"Error detected in 'plugin' method 'mqttListTasmotaDevices'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
     def refreshHubitatDevice(self, valuesDict=None, typeId="", targetId=0):
@@ -2364,7 +2484,7 @@ class Plugin(indigo.PluginBase):
     def publish_tasmota_topic(self, tasmota_key, topic, payload):
         try:
             rc = self.globals[TASMOTA][TASMOTA_MQTT_CLIENT].publish(topic, payload, 2)  # QOS=2
-            self.logger.warning(u">>> Published to Tasmota: RC = {2}, Topic='{0}', Payload='{1}'".format(topic, payload, rc))
+            # self.logger.warning(u">>> Published to Tasmota: RC = {2}, Topic='{0}', Payload='{1}'".format(topic, payload, rc))
 
             log_mqtt_msg = False  # Assume MQTT message should NOT be logged
             # Check if MQTT message filtering required

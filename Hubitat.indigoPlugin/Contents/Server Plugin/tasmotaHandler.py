@@ -47,7 +47,7 @@ class ThreadTasmotaHandler(threading.Thread):
 
     def run(self):
         try:
-            time.sleep(2.0)  # Allow time for Indigo devices to start
+            # time.sleep(2.0)  # Allow time for Indigo devices to start
             # Initialise routine on thread start
             self.tasmotaHandlerLogger.debug(u"Tasmota Handler Thread initialised")
 
@@ -76,7 +76,6 @@ class ThreadTasmotaHandler(threading.Thread):
             self.tasmotaHandlerLogger.info(u"MQTT subscription(s) to Tasmota devices is initialized")
 
             self.globals[TASMOTA][TASMOTA_MQTT_CLIENT] = self.mqtt_client
-            self.globals[TASMOTA][TASMOTA_MQTT_INITIALISED] = True
 
             self.tasmotaHandlerLogger.debug(u"Autolog Tasmota now started")
             self.mqtt_client.loop_start()
@@ -109,6 +108,9 @@ class ThreadTasmotaHandler(threading.Thread):
         try:
             indigo.devices[self.tasmota_id].updateStateOnServer(key='status', value="Connected")
             indigo.devices[self.tasmota_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+
+            self.globals[TASMOTA][TASMOTA_MQTT_INITIALISED] = True
+
         except Exception as err:
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_connect'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
@@ -196,8 +198,11 @@ class ThreadTasmotaHandler(threading.Thread):
 
             self.mqtt_filter_log_processing(tasmota_key, msg_topic, payload)
 
+            self.update_tasmota_status(tasmota_key)
+
             if tasmota_key not in self.globals[TASMOTA][TASMOTA_DEVICES]:
                 self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key] = dict()
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_DISCOVERY_DETAILS] = False
             if TASMOTA_INDIGO_DEVICE_ID not in self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key]:
                 self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] = 0
                 self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_POWER] = False
@@ -241,6 +246,8 @@ class ThreadTasmotaHandler(threading.Thread):
                     ip = payload_data["ip"]
                     self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_IP_ADDRESS] = ip
 
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_DISCOVERY_DETAILS] = True
+
                 if TASMOTA_INDIGO_DEVICE_ID in self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key]:
                     if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] != 0:
                         if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] in indigo.devices:
@@ -259,6 +266,8 @@ class ThreadTasmotaHandler(threading.Thread):
                                 if firmware != self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE]:
                                     props[u"version"] = self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE]
                                     dev.replacePluginPropsOnServer(props)
+
+
 
             elif topics_list[3] == "sensors":
                 try:
@@ -314,6 +323,7 @@ class ThreadTasmotaHandler(threading.Thread):
                             dev = indigo.devices[self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID]]
 
                             if dev.deviceTypeId == "tasmotaOutlet":
+                                key_value_list = list()
                                 if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_POWER]:
                                     payload_ui = u"on"  # Force to On
                                     dev.updateStateOnServer(key="onOffState", value=True)
@@ -322,6 +332,8 @@ class ThreadTasmotaHandler(threading.Thread):
                                     payload_ui = u"off"  # Force to Off
                                     dev.updateStateOnServer(key="onOffState", value=False)
                                     dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOff)
+                                key_value_list.append({u"key": u"lwt", u"value": u"Online"})
+                                dev.updateStatesOnServer(key_value_list)
 
                                 if not bool(dev.pluginProps.get("hidePowerBroadcast", False)):
                                     self.tasmotaHandlerLogger.info(
@@ -366,11 +378,32 @@ class ThreadTasmotaHandler(threading.Thread):
             tasmota_key = topics_list[1][8:]
             self.mqtt_filter_log_processing(tasmota_key, msg_topic, payload)
 
+            self.update_tasmota_status(tasmota_key)
+
             if tasmota_key not in self.globals[TASMOTA][TASMOTA_DEVICES]:
                 self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key] = dict()
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_DISCOVERY_DETAILS] = False
+            if TASMOTA_INDIGO_DEVICE_ID not in self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key]:
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] = 0
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_POWER] = False
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE] = "n/a"
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME] = ""
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_DEVICE_NAME] = ""
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC] = ""
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL] = ""
+                self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_T] = ""
 
-            if tasmota_key in self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS]:
+            if (tasmota_key in self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS] and
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] == 0):
                 self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] = self.globals[TASMOTA][TASMOTA_KEYS_TO_INDIGO_DEVICE_IDS][tasmota_key]
+
+                if not self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_DISCOVERY_DETAILS]:
+                    tasmota_dev = indigo.devices[self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID]]
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME] = tasmota_dev.states["friendlyName"]
+                    # self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_DEVICE_NAME] = tasmota_dev.states["friendlyName"]
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC] = tasmota_dev.states["macAddress"]
+                    self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL] = tasmota_dev.states["model"]
+                    # self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_T] = tasmota_dev.states["friendlyName"]
 
             if topics_list[2] == "LWT":
                 if TASMOTA_INDIGO_DEVICE_ID in self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key]:
@@ -378,15 +411,22 @@ class ThreadTasmotaHandler(threading.Thread):
                         if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] in indigo.devices:
                             dev = indigo.devices[self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID]]
 
+                            key_value_list = list()
                             if dev.deviceTypeId == "tasmotaOutlet":
                                 if payload != "Online":
-                                    key_value_list = list()
                                     key_value_list.append({u"key": u"onOffState", u"value": False})
                                     key_value_list.append({u"key": u"lwt", u"value": u"Offline"})
                                     dev.updateStatesOnServer(key_value_list)
-                                    dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOff)  # Denotes waiting for connection
+                                    dev.setErrorStateOnServer(u"offline")
                                 else:
-                                    dev.updateStateOnServer(key="lwt", value=u"Online")
+                                    key_value_list.append({u"key": u"lwt", u"value": u"Online"})
+                                    dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOn)
+                                    if dev.onState:
+                                        dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOn)
+                                    else:
+                                        dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOff)
+
+                                    dev.updateStatesOnServer(key_value_list)
 
             elif topics_list[2] == "SENSOR":
                 try:
@@ -415,6 +455,26 @@ class ThreadTasmotaHandler(threading.Thread):
         if log_mqtt_msg:
             self.tasmotaHandlerLogger.topic(u"Received from Tasmota: Topic='{0}', Payload='{1}'".format(msg_topic, payload))
 
+    def update_tasmota_status(self, tasmota_key):
+        try:
+            if tasmota_key not in self.globals[TASMOTA][TASMOTA_QUEUE]:
+                return
+            dev_id = self.globals[TASMOTA][TASMOTA_QUEUE][tasmota_key]
+            del self.globals[TASMOTA][TASMOTA_QUEUE][tasmota_key]
+
+            # self.tasmotaHandlerLogger.warning(u"Requesting status update for '{0}'".format(indigo.devices[dev_id].name))
+
+            topic = u"cmnd/tasmota_{0}/Power".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Power"
+            topic_payload = u""  # No payload returns status
+            self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
+            topic = u"cmnd/tasmota_{0}/Status".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Status"
+            topic_payload = "8"  # Show power usage
+            self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
+
+        except StandardError, err:
+            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'update_tasmota_status'. Line '{0}' has error='{1}'"
+                              .format(sys.exc_traceback.tb_lineno, err))
+
     def publish_tasmota_topic(self, tasmota_key, topic, payload):
         try:
             self.globals[TASMOTA][TASMOTA_MQTT_CLIENT].publish(topic, payload)
@@ -431,7 +491,7 @@ class ThreadTasmotaHandler(threading.Thread):
                 self.tasmotaHandlerLogger.topic(u">>> Published to Tasmota: Topic='{0}', Payload='{1}'".format(topic, payload))
 
         except StandardError, err:
-            self.tasmotaHandlerLogger.error(u"Error detected in 'plugin' method 'publish_tasmota_topic'. Line '{0}' has error='{1}'"
+            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'publish_tasmota_topic'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, err))
 
     def reset_energy_total(self, tasmota_key, payload_data):
@@ -573,7 +633,7 @@ class ThreadTasmotaHandler(threading.Thread):
                                                        "value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][
                                                            TASMOTA_PAYLOAD_ENERGY_POWER],
                                                        "uiValue": wattStr})
-
+                                key_value_list.append({u"key": u"lwt", u"value": u"Online"})
                                 dev.updateStatesOnServer(key_value_list)
 
         except Exception as err:
