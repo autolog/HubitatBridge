@@ -63,7 +63,7 @@
     <Field id="space-header-uspAcceleration" type="label"
            visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspAcceleration" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyAcceleration" visibleBindingValue="true">
         <Label>Acceleration</Label>
     </Field>
     <Field id="uspAcceleration" type="checkbox" defaultValue="false"

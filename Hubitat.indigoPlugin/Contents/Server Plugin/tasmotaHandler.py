@@ -39,6 +39,8 @@ class ThreadTasmotaHandler(threading.Thread):
 
             self.threadStop = event
 
+            self.bad_disconnection = False
+
             self.mqtt_client = self.globals[TASMOTA][TASMOTA_MQTT_CLIENT]
             self.mqtt_message_sequence = 0
         except Exception as err:
@@ -71,9 +73,10 @@ class ThreadTasmotaHandler(threading.Thread):
 
                 # At this point, queue a recovery for n seconds time
                 return
-            for tasmota_subscription in self.globals[TASMOTA][TASMOTA_MQTT_TOPICS]:
-                self.mqtt_client.subscribe(tasmota_subscription, qos=1)
-            self.tasmotaHandlerLogger.info(u"MQTT subscription(s) to Tasmota devices is initialized")
+
+            # for tasmota_subscription in self.globals[TASMOTA][TASMOTA_MQTT_TOPICS]:
+            #     self.mqtt_client.subscribe(tasmota_subscription, qos=1)
+            # self.tasmotaHandlerLogger.info(u"MQTT subscription(s) to Tasmota devices is initialized")
 
             self.globals[TASMOTA][TASMOTA_MQTT_CLIENT] = self.mqtt_client
 
@@ -103,13 +106,20 @@ class ThreadTasmotaHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_publish'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-
     def on_connect(self, client, userdata, flags, rc):
         try:
             indigo.devices[self.tasmota_id].updateStateOnServer(key='status', value="Connected")
             indigo.devices[self.tasmota_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
 
+            for tasmota_subscription in self.globals[TASMOTA][TASMOTA_MQTT_TOPICS]:
+                self.mqtt_client.subscribe(tasmota_subscription, qos=1)
+            # self.tasmotaHandlerLogger.info(u"MQTT subscription(s) to Tasmota devices is initialized")
+
             self.globals[TASMOTA][TASMOTA_MQTT_INITIALISED] = True
+
+            if self.bad_disconnection:
+                self.bad_disconnection = False
+                self.tasmotaHandlerLogger.info(u"'{0}' reconnected to MQTT Broker.".format(indigo.devices[self.tasmota_id].name))
 
         except Exception as err:
             trace_back = sys.exc_info()[2]
@@ -118,10 +128,11 @@ class ThreadTasmotaHandler(threading.Thread):
     def on_disconnect(self, client, userdata, rc):
         try:
             if rc != 0:
-                self.tasmotaHandlerLogger.warning(u"Unexpected disconnection: RC = {0}.".format(rc))
+                self.tasmotaHandlerLogger.warning(u"'{0}' encountered an unexpected disconnection from MQTT Broker [Code {1}]. Retrying connection ...".format(indigo.devices[self.tasmota_id].name, rc))
+                self.bad_disconnection = True
             else:
                 self.tasmotaHandlerLogger.info(u"MQTT subscription to Tasmota ended")
-            self.mqtt_client.loop_stop()
+                self.mqtt_client.loop_stop()
             try:
                 indigo.devices[self.tasmota_id].updateStateOnServer(key='status', value="Disconnected")
                 indigo.devices[self.tasmota_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOff)

@@ -40,6 +40,8 @@ class ThreadHubHandler(threading.Thread):
 
             self.threadStop = event
 
+            self.bad_disconnection = False
+
             self.mqtt_client = self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_CLIENT]
             self.mqtt_message_sequence = 0
         except Exception as err:
@@ -65,8 +67,8 @@ class ThreadHubHandler(threading.Thread):
                                      port=self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_BROKER_PORT],
                                      keepalive=60,
                                      bind_address="")
-            self.mqtt_client.subscribe(self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_TOPIC], qos=1)
-            self.hubHandlerLogger.info(u"MQTT subscription to Hubitat Hub '{0}' initialized".format(self.hubitat_hub_name))
+            # self.mqtt_client.subscribe(self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_TOPIC], qos=1)
+            # self.hubHandlerLogger.info(u"MQTT subscription to Hubitat Hub '{0}' initialized".format(self.hubitat_hub_name))
 
             self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_CLIENT] = self.mqtt_client
             self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_INITIALISED] = True
@@ -94,6 +96,16 @@ class ThreadHubHandler(threading.Thread):
         try:
             indigo.devices[self.hubitat_hub_id].updateStateOnServer(key='status', value="Connected")
             indigo.devices[self.hubitat_hub_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+
+            self.mqtt_client.subscribe(self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_TOPIC], qos=1)
+            # self.hubHandlerLogger.info(u"MQTT subscription to Hubitat Hub '{0}' initialized".format(self.hubitat_hub_name))
+
+            self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_INITIALISED] = True
+
+            if self.bad_disconnection:
+                self.bad_disconnection = False
+                self.hubHandlerLogger.info(u"'{0}' reconnected to MQTT Broker.".format(indigo.devices[self.hubitat_hub_id].name))
+
         except Exception as err:
             trace_back = sys.exc_info()[2]
             self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'on_connect'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
@@ -101,10 +113,12 @@ class ThreadHubHandler(threading.Thread):
     def on_disconnect(self, client, userdata, rc):
         try:
             if rc != 0:
-                self.hubHandlerLogger.warning(u"Unexpected disconnection: RC = {0}.".format(rc))
+                self.hubHandlerLogger.warning(
+                    u"'{0}' encountered an unexpected disconnection from MQTT Broker [Code {1}]. Retrying connection ...".format(indigo.devices[self.hubitat_hub_id].name, rc))
+                self.bad_disconnection = True
             else:
                 self.hubHandlerLogger.info(u"MQTT subscription to Hubitat Hub '{0}' ended".format(self.hubitat_hub_name))
-            self.mqtt_client.loop_stop()
+                self.mqtt_client.loop_stop()
             try:
                 indigo.devices[self.hubitat_hub_id].updateStateOnServer(key='status', value="Disconnected")
                 indigo.devices[self.hubitat_hub_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
