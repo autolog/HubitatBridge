@@ -86,7 +86,7 @@
     <Field id="space-header-uspButton" type="label"
            visibleBindingId="hubitatPropertyButton" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspButton" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyButton" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyButton" visibleBindingValue="true">
         <Label>Button</Label>
     </Field>
     <Field id="uspButtonEnabled" type="checkbox" defaultValue="true" hidden="true"/>
@@ -122,7 +122,7 @@
     <Field id="space-header-uspContact" type="label"
            visibleBindingId="hubitatPropertyContact" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspContact" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyContact" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyContact" visibleBindingValue="true">
         <Label>Contact</Label>
     </Field>
     <Field id="uspContact" type="checkbox" defaultValue="false"
@@ -145,7 +145,7 @@
     <Field id="space-header-uspDimmer" type="label"
            visibleBindingId="hubitatPropertyDim" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspDimmer" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyDim" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyDim" visibleBindingValue="true">
         <Label>Dimmer</Label>
     </Field>
     <Field id="uspDimmer" type="checkbox" defaultValue="false"
@@ -186,7 +186,7 @@
     <Field id="space-header-uspEnergy" type="label"
            visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspEnergy" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyEnergy" visibleBindingValue="true">
         <Label>Energy</Label>
     </Field>
     <Field id="uspEnergy" type="checkbox" defaultValue="false"
@@ -222,7 +222,7 @@
     <Field id="space-header-uspHsm" type="label"
            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspHsm" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">
         <Label>HSM</Label>
     </Field>
     <Field id="uspHsm" type="checkbox" defaultValue="false"
@@ -245,7 +245,7 @@
     <Field id="space-header-uspHumidity" type="label"
            visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspHumidity" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyHumidity" visibleBindingValue="true">
         <Label>Humidity</Label>
     </Field>
     <Field id="uspHumidity" type="checkbox" defaultValue="false"
@@ -278,7 +278,7 @@
     <Field id="space-header-uspIlluminance" type="label"
            visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspIlluminance" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true">
         <Label>Illuminance</Label>
     </Field>
     <Field id="uspIlluminance" type="checkbox" defaultValue="false"
@@ -315,7 +315,7 @@
     <Field id="space-header-uspMotion" type="label"
            visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspMotion" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true">
         <Label>Motion</Label>
     </Field>
     <Field id="uspMotion" type="checkbox" defaultValue="false"
@@ -338,7 +338,7 @@
     <Field id="space-header-uspOnOff" type="label"
            visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspOnOff" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyOnOff" visibleBindingValue="true">
         <Label>On/Off</Label>
     </Field>
     <Field id="uspOnOff" type="checkbox" defaultValue="false"
@@ -368,7 +368,7 @@
     <Field id="space-header-uspPower" type="label"
            visibleBindingId="hubitatPropertyPower" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspPower" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyPower" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyPower" visibleBindingValue="true">
         <Label>Power</Label>
     </Field>
     <Field id="uspPower" type="checkbox" defaultValue="false"
@@ -382,9 +382,13 @@
         <Label>Indigo Device / State:</Label>
         <List class="self" filter="power" method="listDeviceStateMenuOptions"/>
      </Field>
-    <Field id="uspPowerMinimumLevel" type="textfield" defaultValue="0"
+    <Field id="uspPowerMinimumReportingLevel" type="textfield" defaultValue="0"
             visibleBindingId="uspPower" visibleBindingValue="true">
-        <Label>Minimum Power Level:</Label>
+        <Label>Minimum Reporting Power Level:</Label>
+    </Field>
+    <Field id="uspPowerReportingHysteresis" type="textfield" defaultValue="0"
+            visibleBindingId="uspPower" visibleBindingValue="true">
+        <Label>Reporting Power Hysteresis:</Label>
     </Field>
     <Field id="uspPowerUnits" type="textfield" defaultValue="Watts"
             visibleBindingId="uspPower" visibleBindingValue="true">
@@ -409,7 +413,7 @@
     <Field id="space-header-uspPresence" type="label"
            visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspPresence" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true">
         <Label>Presence</Label>
     </Field>
     <Field id="uspPresence" type="checkbox" defaultValue="false"
@@ -432,7 +436,7 @@
     <Field id="space-header-uspPressure" type="label"
            visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspPressure" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true">
         <Label>Pressure</Label>
     </Field>
     <Field id="uspPressure" type="checkbox" defaultValue="false"
@@ -469,7 +473,7 @@
     <Field id="space-header-uspTemperature" type="label"
            visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspTemperature" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true">
         <Label>Temperature</Label>
     </Field>
     <Field id="uspTemperature" type="checkbox" defaultValue="false"
@@ -522,7 +526,7 @@
     <Field id="space-header-uspSetpoint" type="label"
            visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspSetpoint" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true">
         <Label>Setpoint</Label>
     </Field>
     <Field id="uspSetpoint" type="checkbox" defaultValue="false"
@@ -565,7 +569,7 @@
     <Field id="space-header-uspValve" type="label"
            visibleBindingId="hubitatPropertyValve" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspValve" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyValve" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyValve" visibleBindingValue="true">
         <Label>Valve</Label>
     </Field>
     <Field id="uspValve" type="checkbox" defaultValue="false"
@@ -588,7 +592,7 @@
     <Field id="space-header-uspVoltage" type="label"
            visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspVoltage" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true">
         <Label>Voltage</Label>
     </Field>
     <Field id="uspVoltage" type="checkbox" defaultValue="false"

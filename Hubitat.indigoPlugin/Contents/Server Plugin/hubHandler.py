@@ -723,18 +723,33 @@ class ThreadHubHandler(threading.Thread):
                             power = float(payload)
                         except ValueError:
                             return
-                        minimumPowerLevel = float(dev.pluginProps.get("uspPowerMinimumLevel", 0.0))
-                        update_power_state = False
-                        if power > minimumPowerLevel:
-                            update_power_state = True
-                        else:
-                            if dev.states["curEnergyLevel"] >= minimumPowerLevel:
-                                update_power_state = True
-                                payload = "0"
-                        if update_power_state:
-                            decimal_places = int(dev.pluginProps.get("uspPowerDecimalPlaces", 0))
-                            value, uiValue = self.processDecimalPlaces(power, decimal_places, power_units_ui, INDIGO_NO_SPACE_BEFORE_UNITS)
-                            dev.updateStateOnServer(key='curEnergyLevel', value=value, uiValue=uiValue)
+                        minimumPowerLevel = float(dev.pluginProps.get("uspPowerMinimumReportingLevel", 0.0))
+                        reportingPowerHysteresis = float(dev.pluginProps.get("uspPowerReportingHysteresis", 6.0))
+                        if reportingPowerHysteresis > 0.0:
+                            reportingPowerHysteresis = reportingPowerHysteresis / 2
+                        previousPowerLevel = float(dev.states["curEnergyLevel"])
+                        report_power_state = False
+                        power_variance_minimum = previousPowerLevel - reportingPowerHysteresis
+                        power_variance_maximum = previousPowerLevel + reportingPowerHysteresis
+                        if power_variance_minimum < 0.0:
+                            power_variance_minimum = 0.0
+                        if power >= minimumPowerLevel:
+                            # power_variance_minimum = previousPowerLevel - powerReportingVariance
+                            # power_variance_maximum = previousPowerLevel + powerReportingVariance
+                            if power < power_variance_minimum or power > power_variance_maximum:
+                                report_power_state = True
+                        elif previousPowerLevel >= minimumPowerLevel:
+                            if power < power_variance_minimum or power > power_variance_maximum:
+                                report_power_state = True
+
+                        # if power != previousPowerLevel:
+                        #     self.hubHandlerLogger.warning(u"HE Report Power State: Power={0}, Previous={1}, Level={2}, Min={3}, Max={4}"
+                        #                                   .format(power, previousPowerLevel, minimumPowerLevel, power_variance_minimum, power_variance_maximum))
+
+                        decimal_places = int(dev.pluginProps.get("uspPowerDecimalPlaces", 0))
+                        value, uiValue = self.processDecimalPlaces(power, decimal_places, power_units_ui, INDIGO_NO_SPACE_BEFORE_UNITS)
+                        dev.updateStateOnServer(key='curEnergyLevel', value=value, uiValue=uiValue)
+                        if report_power_state:
                             if not bool(dev.pluginProps.get("hidePowerBroadcast", False)):
                                 self.hubHandlerLogger.info(u"received \"{1}\" power update to {0}".format(uiValue, dev.name))
 

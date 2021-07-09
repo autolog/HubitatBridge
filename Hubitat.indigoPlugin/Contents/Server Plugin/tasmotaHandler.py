@@ -631,22 +631,65 @@ class ThreadTasmotaHandler(threading.Thread):
 
                                 # Update Indigo UI states: "accumEnergyTotal" and "curEnergyLevel"
 
-                                # Only update the Acuumulated Energy Total if the new value isn't zero
-                                if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_ENERGY_TOTAL] != 0.0:
-                                    kwh = self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_ENERGY_TOTAL]
-                                    kwh_string = str("%0.3f kWh" % kwh)
-                                    kwhReformatted = float(str("%0.3f" % kwh))
-                                    key_value_list.append({"key": "accumEnergyTotal", "value": kwhReformatted, "uiValue": kwh_string})
+                                power_units_ui = u" {0}".format(dev.pluginProps.get("tasmotaPowerUnits", "Watts"))
+                                try:
+                                    power = float(self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_ENERGY_POWER])
+                                except ValueError:
+                                    return
+                                minimumPowerLevel = float(dev.pluginProps.get("tasmotaPowerMinimumReportingLevel", 0.0))
+                                reportingPowerHysteresis = float(dev.pluginProps.get("tasmotaPowerReportingHysteresis", 6.0))
+                                if reportingPowerHysteresis > 0.0:
+                                    reportingPowerHysteresis = reportingPowerHysteresis / 2
+                                previousPowerLevel = float(dev.states["curEnergyLevel"])
+                                report_power_state = False
+                                power_variance_minimum = previousPowerLevel - reportingPowerHysteresis
+                                power_variance_maximum = previousPowerLevel + reportingPowerHysteresis
+                                if power_variance_minimum < 0.0:
+                                    power_variance_minimum = 0.0
+                                if power >= minimumPowerLevel:
+                                    if power < power_variance_minimum or power > power_variance_maximum:
+                                        report_power_state = True
+                                elif previousPowerLevel >= minimumPowerLevel:
+                                    if power < power_variance_minimum or power > power_variance_maximum:
+                                        report_power_state = True
 
-                                wattStr = "%3.0f Watts" % (self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][
-                                                           TASMOTA_PAYLOAD_ENERGY_POWER])
-                                key_value_list.append({"key": "curEnergyLevel",
-                                                       "value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][
-                                                           TASMOTA_PAYLOAD_ENERGY_POWER],
-                                                       "uiValue": wattStr})
-                                key_value_list.append({u"key": u"lwt", u"value": u"Online"})
+                                # if power != previousPowerLevel:
+                                #     self.tasmotaHandlerLogger.warning(u"Tasmota Report Power State: Power={0}, Previous={1}, Level={2}, Min={3}, Max={4}"
+                                #                                       .format(power, previousPowerLevel, minimumPowerLevel, power_variance_minimum, power_variance_maximum))
+
+                                decimal_places = int(dev.pluginProps.get("tasmotaPowerDecimalPlaces", 0))
+                                value, uiValue = self.processDecimalPlaces(power, decimal_places, power_units_ui, INDIGO_NO_SPACE_BEFORE_UNITS)
+                                key_value_list.append({"key": "curEnergyLevel", "value": value, "uiValue": uiValue})
+                                if report_power_state:
+                                    if not bool(dev.pluginProps.get("hideTasmotaPowerBroadcast", False)):
+                                        self.tasmotaHandlerLogger.info(u"received \"{1}\" power update to {0}".format(uiValue, dev.name))
+
+                                # Only update the Accumulated Energy Total if the new value isn't zero
+                                if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_ENERGY_TOTAL] != 0.0:
+                                    total_units_ui = u" {0}".format(dev.pluginProps.get("tasmotaPowerAccumulatedUnits", "kWh"))
+                                    total = self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_ENERGY_TOTAL]
+                                    decimal_places = int(dev.pluginProps.get("tasmotaPowerAccumulatedDecimalPlaces", 3))
+                                    value, uiValue = self.processDecimalPlaces(total, decimal_places, total_units_ui, INDIGO_NO_SPACE_BEFORE_UNITS)
+                                    key_value_list.append({"key": "accumEnergyTotal", "value": value, "uiValue": uiValue})
+
                                 dev.updateStatesOnServer(key_value_list)
 
         except Exception as err:
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'update_energy_states'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+
+    def processDecimalPlaces(self, field, decimal_places, units, space_before_units):
+        try:
+            units_plus_optional_space = u" {0}".format(units) if space_before_units else u"{0}".format(units)
+            if decimal_places == 0:
+                return int(field), u"{0}{1}".format(int(field), units_plus_optional_space)
+            else:
+                value = round(field, decimal_places)
+
+                uiValue = u"{{0:.{0}f}}{1}".format(decimal_places, units_plus_optional_space).format(field)
+
+                return value, uiValue
+
+        except Exception as err:
+            trace_back = sys.exc_info()[2]
+            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'processDecimalPlaces'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))

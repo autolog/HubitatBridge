@@ -17,11 +17,55 @@
     </Field>
     <Field id="space-T4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
 
-    <Field id="refreshHubitatDevice" type="button"
-           tooltip="Click to refresh Tasmota Device.">
-        <Label>Refresh Tasmota Device</Label>
-        <Title>Refresh</Title>
-        <CallbackMethod>refreshTasmotaDevice</CallbackMethod>
+    <!-- Power -->
+    <Field id="separator-tasmotaPower" type="separator" alwaysUseInDialogHeightCalc="true"/>
+    <Field id="space-header-tasmotaPower" type="label"><Label/></Field>
+    <Field id="header-tasmotaPower" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange">
+        <Label>Power</Label>
     </Field>
+    <Field id="tasmotaPowerMinimumReportingLevel" type="textfield" defaultValue="0">
+        <Label>Minimum Reporting Power Level:</Label>
+    </Field>
+    <Field id="tasmotaPowerReportingHysteresis" type="textfield" defaultValue="0">
+        <Label>Reporting Power Hysteresis:</Label>
+    </Field>
+    <Field id="tasmotaPowerUnits" type="textfield" defaultValue="Watts">
+        <Label>Power Units:</Label>
+    </Field>
+    <Field id="tasmotaPowerDecimalPlaces" type="menu" defaultValue="0">
+        <Label>Power Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="tasmotaPowerAccumulatedUnits" type="textfield" defaultValue="kWh">
+        <Label>Power Accumulated Units:</Label>
+    </Field>
+    <Field id="tasmotaPowerAccumulatedDecimalPlaces" type="menu" defaultValue="3">
+        <Label>Power Accumulated Decimal Places:</Label>
+        <List>
+            <Option value="0">None [e.g. 1]</Option>
+            <Option value="1">One [e.g. 1.2]</Option>
+            <Option value="2">Two [e.g. 1.23]</Option>
+            <Option value="3">Three [e.g. 1.234]</Option>
+        </List>
+    </Field>
+    <Field id="space-T5" type="label"><Label/></Field>
+
+    <!-- User Selectable Broadcast Logging   -->
+
+    <Field id="separator-logging" type="separator" alwaysUseInDialogHeightCalc="true"/>
+
+    <Field id="header-logging" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>LOGGING</Label>
+    </Field>
+
+    <Field id="hideTasmotaPowerBroadcast" type="checkbox" defaultValue="false">
+        <Description>Hide power usage message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-T6" type="label"><Label/></Field>
 
 </Template>

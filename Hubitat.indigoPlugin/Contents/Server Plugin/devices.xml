@@ -123,12 +123,12 @@
             </State>
             <State id="energyToday">
                 <ValueType>Float</ValueType>
-                <TriggerLabel>>Tasmota Energy Today changed</TriggerLabel>
+                <TriggerLabel>Tasmota Energy Today changed</TriggerLabel>
                 <ControlPageLabel>Tasmota Energy Today</ControlPageLabel>
             </State>
             <State id="energyTotal">
                 <ValueType>Float</ValueType>
-                <TriggerLabel>>Tasmota Energy Total changed</TriggerLabel>
+                <TriggerLabel>Tasmota Energy Total changed</TriggerLabel>
                 <ControlPageLabel>Tasmota Energy Total</ControlPageLabel>
             </State>
             <State id="energyTotalStartTime">
@@ -155,7 +155,7 @@
 	</Device>
 
 <!--
-    <Device id="button"  type="scene" subType="indigo.kSceneDeviceSubType.Scene">>
+    <Device id="button"  type="scene" subType="indigo.kSceneDeviceSubType.Scene">
         <Name>Scene (Button)</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
@@ -340,7 +340,7 @@
 	</Device>
 
     <!-- Valve [Secondary] -->
-    <Device id="valveSecondary" type="dimmer" subType="indigo.kDimmerDeviceSubType.Valve">>
+    <Device id="valveSecondary" type="dimmer" subType="indigo.kDimmerDeviceSubType.Valve">
         <Name>Thermostat Valve [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />

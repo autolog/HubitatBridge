@@ -436,6 +436,9 @@ class Client(object):
     "userdata" is user data of any type and can be set when creating a new client
     instance or with user_data_set(userdata).
 
+    If you wish to suppress exceptions within a callback, you should set
+    `client.suppress_exceptions = True`
+
     The callbacks:
 
     on_connect(client, userdata, flags, rc, properties=None): called when the broker responds to our connection
@@ -651,6 +654,7 @@ class Client(object):
         self._websocket_extra_headers = None
         # for clean_start == MQTT_CLEAN_START_FIRST_ONLY
         self._mqttv5_first_connect = True
+        self.suppress_exceptions = False # For callbacks
 
     def __del__(self):
         self._reset_sockets()
@@ -765,7 +769,7 @@ class Client(object):
         option given then the client will operate in a similar manner to a web
         browser. That is to say it will require the broker to have a
         certificate signed by the Certificate Authorities in ca_certs and will
-        communicate using TLS v1, but will not attempt any form of
+        communicate using TLS v1,2, but will not attempt any form of
         authentication. This provides basic network encryption but may not be
         sufficient depending on how the broker is configured.
         By default, on Python 2.7.9+ or 3.4+, the default certification
@@ -786,9 +790,8 @@ class Client(object):
         pydoc for more information on this parameter.
 
         tls_version allows the version of the SSL/TLS protocol used to be
-        specified. By default TLS v1 is used. Previous versions (all versions
-        beginning with SSL) are possible but not recommended due to possible
-        security problems.
+        specified. By default TLS v1.2 is used. Previous versions are allowed
+        but not recommended due to possible security problems.
 
         ciphers is a string specifying which encryption ciphers are allowable
         for this connection, or None to use the defaults. See the ssl pydoc for
@@ -808,7 +811,7 @@ class Client(object):
 
         # Create SSLContext object
         if tls_version is None:
-            tls_version = ssl.PROTOCOL_TLSv1
+            tls_version = ssl.PROTOCOL_TLSv1_2
             # If the python version supports it, use highest TLS version automatically
             if hasattr(ssl, "PROTOCOL_TLS"):
                 tls_version = ssl.PROTOCOL_TLS
@@ -925,7 +928,7 @@ class Client(object):
         """
 
         if self._protocol == MQTTv5:
-            self._mqttv5_first_connect == True
+            self._mqttv5_first_connect = True
         else:
             if clean_start != MQTT_CLEAN_START_FIRST_ONLY:
                 raise ValueError("Clean start only applies to MQTT V5")
@@ -1637,14 +1640,7 @@ class Client(object):
             else:
                 rc = 1
 
-            with self._callback_mutex:
-                if self.on_disconnect:
-                    with self._in_callback_mutex:
-                        try:
-                            self.on_disconnect(self, self._userdata, rc)
-                        except Exception as err:
-                            self._easy_log(
-                                MQTT_LOG_ERR, 'Caught exception in on_disconnect: %s', err)
+            self._do_on_disconnect(rc)
 
             return MQTT_ERR_CONN_LOST
 
@@ -2075,6 +2071,8 @@ class Client(object):
                     except Exception as err:
                         self._easy_log(
                             MQTT_LOG_ERR, 'Caught exception in on_socket_open: %s', err)
+                        if not self.suppress_exceptions:
+                            raise
 
     @property
     def on_socket_close(self):
@@ -2107,6 +2105,8 @@ class Client(object):
                     except Exception as err:
                         self._easy_log(
                             MQTT_LOG_ERR, 'Caught exception in on_socket_close: %s', err)
+                        if not self.suppress_exceptions:
+                            raise
 
     @property
     def on_socket_register_write(self):
@@ -2142,6 +2142,8 @@ class Client(object):
                 except Exception as err:
                     self._easy_log(
                         MQTT_LOG_ERR, 'Caught exception in on_socket_register_write: %s', err)
+                    if not self.suppress_exceptions:
+                        raise
 
     @property
     def on_socket_unregister_write(self):
@@ -2178,6 +2180,8 @@ class Client(object):
                 except Exception as err:
                     self._easy_log(
                         MQTT_LOG_ERR, 'Caught exception in on_socket_unregister_write: %s', err)
+                    if not self.suppress_exceptions:
+                        raise
 
     def message_callback_add(self, sub, callback):
         """Register a message callback for a specific topic.
@@ -2219,18 +2223,8 @@ class Client(object):
             if self._state == mqtt_cs_disconnecting:
                 rc = MQTT_ERR_SUCCESS
 
-            with self._callback_mutex:
-                if self.on_disconnect:
-                    with self._in_callback_mutex:
-                        try:
-                            if properties:
-                                self.on_disconnect(
-                                    self, self._userdata, rc, properties)
-                            else:
-                                self.on_disconnect(self, self._userdata, rc)
-                        except Exception as err:
-                            self._easy_log(
-                                MQTT_LOG_ERR, 'Caught exception in on_disconnect: %s', err)
+            self._do_on_disconnect(rc, properties)
+
         return rc
 
     def _packet_read(self):
@@ -2365,6 +2359,8 @@ class Client(object):
                                     except Exception as err:
                                         self._easy_log(
                                             MQTT_LOG_ERR, 'Caught exception in on_publish: %s', err)
+                                        if not self.suppress_exceptions:
+                                            raise
 
                         packet['info']._set_as_published()
 
@@ -2374,15 +2370,7 @@ class Client(object):
                         with self._msgtime_mutex:
                             self._last_msg_out = time_func()
 
-                        with self._callback_mutex:
-                            if self.on_disconnect:
-                                with self._in_callback_mutex:
-                                    try:
-                                        self.on_disconnect(
-                                            self, self._userdata, 0)
-                                    except Exception as err:
-                                        self._easy_log(
-                                            MQTT_LOG_ERR, 'Caught exception in on_disconnect: %s', err)
+                        self._do_on_disconnect(0)
 
                         self._sock_close()
                         return MQTT_ERR_SUCCESS
@@ -2437,14 +2425,8 @@ class Client(object):
                     rc = MQTT_ERR_SUCCESS
                 else:
                     rc = 1
-                with self._callback_mutex:
-                    if self.on_disconnect:
-                        with self._in_callback_mutex:
-                            try:
-                                self.on_disconnect(self, self._userdata, rc)
-                            except Exception as err:
-                                self._easy_log(
-                                    MQTT_LOG_ERR, 'Caught exception in on_disconnect: %s', err)
+
+                self._do_on_disconnect(rc)
 
     def _mid_generate(self):
         with self._mid_generate_mutex:
@@ -2614,7 +2596,7 @@ class Client(object):
         if self._protocol == MQTTv5:
             if self._clean_start == True:
                 connect_flags |= 0x02
-            elif self._clean_start == MQTT_CLEAN_START_FIRST_ONLY and self._mqttv5_first_connect == True:
+            elif self._clean_start == MQTT_CLEAN_START_FIRST_ONLY and self._mqttv5_first_connect:
                 connect_flags |= 0x02
         elif self._clean_session:
             connect_flags |= 0x02
@@ -2834,7 +2816,8 @@ class Client(object):
                             m.payload,
                             m.qos,
                             m.retain,
-                            m.dup
+                            m.dup,
+                            properties=m.properties,
                         )
                     elif m.state == mqtt_ms_wait_for_pubrel:
                         m.timestamp = now
@@ -3030,7 +3013,7 @@ class Client(object):
                 MQTT_LOG_DEBUG, "Received CONNACK (%s, %s)", flags, result)
 
         # it won't be the first successful connect any more
-        self._mqttv5_first_connect == False
+        self._mqttv5_first_connect = False
 
         with self._callback_mutex:
             if self.on_connect:
@@ -3047,6 +3030,8 @@ class Client(object):
                     except Exception as err:
                         self._easy_log(
                             MQTT_LOG_ERR, 'Caught exception in on_connect: %s', err)
+                        if not self.suppress_exceptions:
+                            raise
 
         if result == 0:
             rc = 0
@@ -3166,6 +3151,8 @@ class Client(object):
                     except Exception as err:
                         self._easy_log(
                             MQTT_LOG_ERR, 'Caught exception in on_subscribe: %s', err)
+                        if not self.suppress_exceptions:
+                            raise
 
         return MQTT_ERR_SUCCESS
 
@@ -3241,7 +3228,10 @@ class Client(object):
             return MQTT_ERR_PROTOCOL
 
     def _handle_pubrel(self):
-        if self._in_packet['remaining_length'] != 2:
+        if self._protocol == MQTTv5:
+            if self._in_packet['remaining_length'] < 2:
+                return MQTT_ERR_PROTOCOL
+        elif self._in_packet['remaining_length'] != 2:
             return MQTT_ERR_PROTOCOL
 
         mid, = struct.unpack("!H", self._in_packet['packet'])
@@ -3285,6 +3275,7 @@ class Client(object):
                         m.qos,
                         m.retain,
                         m.dup,
+                        properties=m.properties,
                     )
                     if rc != 0:
                         return rc
@@ -3352,7 +3343,25 @@ class Client(object):
                     except Exception as err:
                         self._easy_log(
                             MQTT_LOG_ERR, 'Caught exception in on_unsubscribe: %s', err)
+                        if not self.suppress_exceptions:
+                            raise
         return MQTT_ERR_SUCCESS
+
+    def _do_on_disconnect(self, rc, properties=None):
+        with self._callback_mutex:
+            if self.on_disconnect:
+                with self._in_callback_mutex:
+                    try:
+                        if properties:
+                            self.on_disconnect(
+                                self, self._userdata, rc, properties)
+                        else:
+                            self.on_disconnect(self, self._userdata, rc)
+                    except Exception as err:
+                        self._easy_log(
+                            MQTT_LOG_ERR, 'Caught exception in on_disconnect: %s', err)
+                        if not self.suppress_exceptions:
+                            raise
 
     def _do_on_publish(self, mid):
         with self._callback_mutex:
@@ -3363,6 +3372,8 @@ class Client(object):
                     except Exception as err:
                         self._easy_log(
                             MQTT_LOG_ERR, 'Caught exception in on_publish: %s', err)
+                        if not self.suppress_exceptions:
+                            raise
 
         msg = self._out_messages.pop(mid)
         msg.info._set_as_published()
@@ -3413,7 +3424,17 @@ class Client(object):
             if topic is not None:
                 for callback in self._on_message_filtered.iter_match(message.topic):
                     with self._in_callback_mutex:
-                        callback(self, self._userdata, message)
+                        try:
+                            callback(self, self._userdata, message)
+                        except Exception as err:
+                            self._easy_log(
+                                MQTT_LOG_ERR,
+                                'Caught exception in user defined callback function %s: %s',
+                                callback.__name__,
+                                err
+                            )
+                            if not self.suppress_exceptions:
+                                raise
                     matched = True
 
             if matched == False and self.on_message:
@@ -3423,6 +3444,8 @@ class Client(object):
                     except Exception as err:
                         self._easy_log(
                             MQTT_LOG_ERR, 'Caught exception in on_message: %s', err)
+                        if not self.suppress_exceptions:
+                            raise
 
     def _thread_main(self):
         self.loop_forever(retry_first_connection=True)
@@ -3509,7 +3532,7 @@ class Client(object):
         proxy = self._get_proxy()
         addr = (self._host, self._port)
         source = (self._bind_address, self._bind_port)
-       
+
 
         if sys.version_info < (2, 7) or (3, 0) < sys.version_info < (3, 2):
             # Have to short-circuit here because of unsupported source_address

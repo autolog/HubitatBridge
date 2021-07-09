@@ -1021,6 +1021,8 @@ class Plugin(indigo.PluginBase):
                 if "tasmotaDevice" not in plugin_props:
                     plugin_props["tasmotaDevice"] = "-SELECT-"  # Name of Tasmota Device - Default: "-SELECT-", "-- Select Tasmota Device --"
 
+                # TODO: Initialise Power pr0ps if not set-up
+
             elif type_id == "hubitatElevationHub":
                 if "hub_name" not in plugin_props:
                     plugin_props["hub_name"] = ""  # Name of Hubitat Elevation Hub - "" if not present
@@ -1085,11 +1087,6 @@ class Plugin(indigo.PluginBase):
                     plugin_props["uspValve"] = False
                     plugin_props["uspVoltage"] = False
                     plugin_props["uspWhiteTemperature"] = False
-
-                # TODO: Remove this commented out obsolte code now that Tasmota Plugs are supported natively
-                # if type_id == "outlet":
-                #     if "uspOnOffTasmota" not in plugin_props:
-                #         plugin_props['uspOnOffTasmota'] = "-SELECT-"
 
             elif type_id in ("accelerationSensorSecondary", "illuminanceSensorSecondary",
                              "motionSensorSecondary", "presenceSensorSecondary", "pressureSensorSecondary",

@@ -41,7 +41,7 @@
     <Field id="space-header-uspHsm" type="label"
            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"><Label/></Field>
     <Field id="header-uspHsm" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
-            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">>
+            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">
         <Label>HSM</Label>
     </Field>
     <Field id="uspHsm" type="checkbox" defaultValue="false"
