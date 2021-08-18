@@ -111,6 +111,31 @@
             <Option value="4">Four Buttons</Option>
             <Option value="5">Five Buttons</Option>
             <Option value="6">Six Buttons</Option>
+            <Option value="7">Seven Buttons</Option>
+            <Option value="8">Eight Buttons</Option>
+            <Option value="9">Nine Buttons</Option>
+            <Option value="10">10 Buttons</Option>
+            <Option value="11">11 Buttons</Option>
+            <Option value="12">12 Buttons</Option>
+            <Option value="13">13 Buttons</Option>
+            <Option value="14">14 Buttons</Option>
+            <Option value="15">15 Buttons</Option>
+            <Option value="16">16 Buttons</Option>
+            <Option value="17">17 Buttons</Option>
+            <Option value="18">18 Buttons</Option>
+            <Option value="19">19 Buttons</Option>
+            <Option value="20">20 Buttons</Option>
+            <Option value="21">21 Buttons</Option>
+            <Option value="22">22 Buttons</Option>
+            <Option value="23">23 Buttons</Option>
+            <Option value="24">24 Buttons</Option>
+            <Option value="25">25 Buttons</Option>
+            <Option value="26">26 Buttons</Option>
+            <Option value="27">27 Buttons</Option>
+            <Option value="28">28 Buttons</Option>
+            <Option value="29">29 Buttons</Option>
+            <Option value="30">30 Buttons</Option>
+
         </List>
     </Field>
     <Field id="space-uspButton" type="label"

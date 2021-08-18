@@ -79,7 +79,7 @@ class Plugin(indigo.PluginBase):
         startup_message_ui += u"{0:<31} {1}\n".format("Plugin Version:", self.globals[K_PLUGIN_INFO][K_PLUGIN_VERSION])
         startup_message_ui += u"{0:<31} {1}\n".format("Plugin ID:", self.globals[K_PLUGIN_INFO][K_PLUGIN_ID])
         startup_message_ui += u"{0:<31} {1}\n".format("Indigo Version:", indigo.server.version)
-        if indigo.server.apiVersion == u"2.5":
+        if self.versGreaterThanOrEq(indigo.server.apiVersion, u"2.5"):
             startup_message_ui += u"{0:<31} {1}\n".format("Indigo License:", indigo.server.licenseStatus)
         startup_message_ui += u"{0:<31} {1}\n".format("Indigo API Version:", indigo.server.apiVersion)
         startup_message_ui += u"{0:<31} {1}\n".format("Python Version:", sys.version.replace("\n", ""))
