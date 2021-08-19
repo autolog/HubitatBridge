@@ -63,26 +63,34 @@ class ThreadHubHandler(threading.Thread):
             self.mqtt_client.on_disconnect = self.on_disconnect
             self.mqtt_client.on_subscribe = self.on_subscribe
             self.mqtt_client.message_callback_add(self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_TOPIC], self.handle_message)
-            self.mqtt_client.connect(host=self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_BROKER_IP],
-                                     port=self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_BROKER_PORT],
-                                     keepalive=60,
-                                     bind_address="")
-            # self.mqtt_client.subscribe(self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_TOPIC], qos=1)
-            # self.hubHandlerLogger.info(u"MQTT subscription to Hubitat Hub '{0}' initialized".format(self.hubitat_hub_name))
+            mqtt_connected = False
+            try:
+                self.mqtt_client.connect(host=self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_BROKER_IP],
+                                         port=self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_BROKER_PORT],
+                                         keepalive=60,
+                                         bind_address="")
+                mqtt_connected = True
+            except Exception as err:
+                self.hubHandlerLogger.error(u"Hub Handler for '{0}' is unable to connect to MQTT. Is it running? Connection error reported as '{1}'".format(self.hubitat_hub_name, err))
 
-            self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_CLIENT] = self.mqtt_client
-            self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_INITIALISED] = True
+            if mqtt_connected:
+                self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_CLIENT] = self.mqtt_client
+                self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_INITIALISED] = True
 
-            self.hubHandlerLogger.debug(u"Autolog Hubitat Hub {0} now started".format(self.hubitat_hub_name))
-            self.mqtt_client.loop_start()
+                self.hubHandlerLogger.debug(u"Autolog Hubitat Hub {0} now started".format(self.hubitat_hub_name))
+                self.mqtt_client.loop_start()
 
-            while not self.threadStop.is_set():
-                try:
-                    time.sleep(2)
-                except self.threadStop:
-                    pass  # Optionally catch the StopThread exception and do any needed cleanup.
-                    self.mqtt_client.loop_stop()
-                    self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_INITIALISED] = False
+                while not self.threadStop.is_set():
+                    try:
+                        time.sleep(2)
+                    except self.threadStop:
+                        pass  # Optionally catch the StopThread exception and do any needed cleanup.
+                        self.mqtt_client.loop_stop()
+                        self.globals[HE_HUBS][self.hubitat_hub_name][HE_HUB_MQTT_INITIALISED] = False
+            else:
+                pass
+                # TODO: At this point, queue a recovery for n seconds time
+                # TODO: In the meanwhile, just disable and then enable the Indigo Hubitat Elevation Hub device
 
             self.hubHandlerLogger.debug(u"Hub Handler Thread for '{0}' close-down commencing.".format(self.hubitat_hub_name))
 

@@ -177,7 +177,7 @@ class Plugin(indigo.PluginBase):
 
                 if hubitat_hub_dev_id > 0:
                     if not self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_INITIALISED]:
-                        self.logger.warning(u"Unable to perform '{0}' action for '{1}' as Hubitat Hub device '{2}' is not initialised.".format(action.description, dev.name, hubitat_hub_name))
+                        self.logger.warning(u"Unable to perform '{0}' action for '{1}' as Hubitat Hub device '{2}' is not initialised. Is MQTT running?".format(action.description, dev.name, hubitat_hub_name))
                         return
 
                     topic = u"{0}/{1}/{2}/onoff/set".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name, hubitat_device_name)  # e.g. "homie/home-1/study-socket-spare/onoff/set"
@@ -450,7 +450,7 @@ class Plugin(indigo.PluginBase):
 
             if hubitat_hub_dev_id > 0:
                 if not self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_INITIALISED]:
-                    self.logger.warning(u"Unable to perform '{0}' action for '{1}' as Hubitat Hub device '{2}' is not initialised.".format(action.description, dev.name, hubitat_hub_name))
+                    self.logger.warning(u"Unable to perform '{0}' action for '{1}' as Hubitat Hub device '{2}' is not initialised. Is MQTT running?".format(action.description, dev.name, hubitat_hub_name))
                     return
 
                 mqtt_filter_key = u"{0}|{1}".format(hubitat_hub_name.lower(), hubitat_device_name.lower())
@@ -551,7 +551,7 @@ class Plugin(indigo.PluginBase):
 
             if hubitat_hub_dev_id > 0:
                 if not self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_INITIALISED]:
-                    self.logger.warning(u"Unable to perform '{0}' action for '{1}' as Hubitat Hub device '{2}' is not initialised.".format(action.description, dev.name, hubitat_hub_name))
+                    self.logger.warning(u"Unable to perform '{0}' action for '{1}' as Hubitat Hub device '{2}' is not initialised. Is MQTT running?".format(action.description, dev.name, hubitat_hub_name))
                     return
 
             mqtt_filter_key = u"{0}|{1}".format(hubitat_hub_name.lower(), hubitat_device_name.lower())

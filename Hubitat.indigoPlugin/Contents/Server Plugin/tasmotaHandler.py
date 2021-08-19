@@ -63,33 +63,34 @@ class ThreadTasmotaHandler(threading.Thread):
             self.mqtt_client.on_publish = self.on_publish
             for tasmota_subscription in self.globals[TASMOTA][TASMOTA_MQTT_TOPICS]:
                 self.mqtt_client.message_callback_add(tasmota_subscription, self.handle_message)
+            mqtt_connected = False
             try:
                 self.mqtt_client.connect(host=self.globals[TASMOTA][TASMOTA_MQTT_BROKER_IP],
                                          port=self.globals[TASMOTA][TASMOTA_MQTT_BROKER_PORT],
                                          keepalive=60,
                                          bind_address="")
-            except:
-                self.tasmotaHandlerLogger.warning(u"Unable to connect to MQTT for Tasmota Tasmota devices")
+                mqtt_connected = True
+            except Exception as err:
+                self.tasmotaHandlerLogger.error(u"Tasmota Handler is unable to connect to MQTT. Is it running? Connection error reported as '{0}'".format(err))
 
-                # At this point, queue a recovery for n seconds time
-                return
+            if mqtt_connected:
 
-            # for tasmota_subscription in self.globals[TASMOTA][TASMOTA_MQTT_TOPICS]:
-            #     self.mqtt_client.subscribe(tasmota_subscription, qos=1)
-            # self.tasmotaHandlerLogger.info(u"MQTT subscription(s) to Tasmota devices is initialized")
+                self.globals[TASMOTA][TASMOTA_MQTT_CLIENT] = self.mqtt_client
 
-            self.globals[TASMOTA][TASMOTA_MQTT_CLIENT] = self.mqtt_client
+                self.tasmotaHandlerLogger.debug(u"Autolog Tasmota now started")
+                self.mqtt_client.loop_start()
 
-            self.tasmotaHandlerLogger.debug(u"Autolog Tasmota now started")
-            self.mqtt_client.loop_start()
-
-            while not self.threadStop.is_set():
-                try:
-                    time.sleep(2)
-                except self.threadStop:
-                    pass  # Optionally catch the StopThread exception and do any needed cleanup.
-                    self.mqtt_client.loop_stop()
-                    self.globals[TASMOTA][TASMOTA_MQTT_INITIALISED] = False
+                while not self.threadStop.is_set():
+                    try:
+                        time.sleep(2)
+                    except self.threadStop:
+                        pass  # Optionally catch the StopThread exception and do any needed cleanup.
+                        self.mqtt_client.loop_stop()
+                        self.globals[TASMOTA][TASMOTA_MQTT_INITIALISED] = False
+            else:
+                pass
+                # TODO: At this point, queue a recovery for n seconds time
+                # TODO: In the meanwhile, just disable and then enable the Indigo Tasmota device
 
             self.tasmotaHandlerLogger.debug(u"Tasmota Handler Thread close-down commencing.")
 
