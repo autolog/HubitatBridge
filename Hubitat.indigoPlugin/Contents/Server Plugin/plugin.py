@@ -2155,7 +2155,7 @@ class Plugin(indigo.PluginBase):
                 white_temperature = int(dev.states["whiteTemperature"])
 
                 if "whiteLevel" in action.actionValue:
-                    white_level = int(action.actionValue["whiteLevel"])
+                    white_level = int(float(action.actionValue["whiteLevel"]))
 
                 if "whiteTemperature" in action.actionValue:
                     white_temperature = int(action.actionValue["whiteTemperature"])
