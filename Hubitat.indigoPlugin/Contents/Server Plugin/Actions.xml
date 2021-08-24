@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<Actions>
+
+    <Action id="setWhiteLevelTemperature" deviceFilter="self.dimmer" uiPath="DeviceActions">
+        <Name>Set White Level / Temperature</Name>
+        <CallbackMethod>setWhiteLevelTemperature</CallbackMethod>
+        <ConfigUI>
+            <Field id="setWhiteLevel" type="checkbox" defaultValue="True" alwaysUseInDialogHeightCalc="true">
+                <Label>White Level:</Label>
+                <Description>Check to set White Level</Description>
+            </Field>
+            <Field id="whiteLevel" type="textfield" defaultValue="100"
+                visibleBindingId="setWhiteLevel" visibleBindingValue="true" alwaysUseInDialogHeightCalc="true">
+                <Label>White Level:</Label>
+            </Field>
+            <Field id="setWhiteTemperature" type="checkbox" defaultValue="True" alwaysUseInDialogHeightCalc="true">
+                <Label>White Temperature:</Label>
+                <Description>Check to set White Temperature</Description>
+            </Field>
+            <Field id="whiteTemperature" type="textfield" defaultValue="3500" alwaysUseInDialogHeightCalc="true"
+                visibleBindingId="setWhiteTemperature" visibleBindingValue="true">
+                <Label>White Temperature:</Label>
+                <Description>Kelvin</Description>
+            </Field>
+        </ConfigUI>
+    </Action>
+</Actions>

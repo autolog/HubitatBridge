@@ -179,13 +179,14 @@ class Plugin(indigo.PluginBase):
                     if not self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_INITIALISED]:
                         self.logger.warning(u"Unable to perform '{0}' action for '{1}' as Hubitat Hub device '{2}' is not initialised. Is MQTT running?".format(action.description, dev.name, hubitat_hub_name))
                         return
-
-                    topic = u"{0}/{1}/{2}/onoff/set".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name, hubitat_device_name)  # e.g. "homie/home-1/study-socket-spare/onoff/set"
                 else:
                     self.logger.warning(u"Unable to perform '{0}' action for '{1}' as unable to resolve Hubitat Hub device.".format(action.description, dev.name))
                     return
 
             mqtt_filter_key = u"{0}|{1}".format(hubitat_hub_name.lower(), hubitat_device_name.lower())
+
+            # Set defualt topic for turn on / off / toggle
+            topic = u"{0}/{1}/{2}/onoff/set".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name, hubitat_device_name)  # e.g. "homie/home-1/study-socket-spare/onoff/set"
 
             # ##### TURN ON ######
             if action.deviceAction == indigo.kDeviceAction.TurnOn:
@@ -1319,6 +1320,41 @@ class Plugin(indigo.PluginBase):
     def stopConcurrentThread(self):
         self.logger.info(u"Hubitat plugin closing down")
 
+    def validateActionConfigUi(self, values_dict, type_id, action_id):
+        try:
+            error_dict = indigo.Dict()
+
+            white_level = -1  # Only needed to suppress a PyCharm warning!
+            white_temperature = -1  # Only needed to suppress a PyCharm warning!
+
+            if bool(values_dict.get("setWhiteLevel", True)):
+                valid = True
+                try:
+                    white_level = int(values_dict["whiteLevel"])
+                except ValueError:
+                    valid = False
+                if not valid or (white_level < 0 or white_level > 100):
+                    error_dict["whiteLevel"] = "White Level must be an integer between 0 and 100"
+                    error_dict["showAlertText"] = "You must enter an integer between 0 and 100 for White Level"
+                    return False, values_dict, error_dict
+
+            if bool(values_dict.get("setWhiteTemperature", True)):
+                valid = True
+                try:
+                    white_temperature = int(values_dict["whiteTemperature"])
+                except ValueError:
+                    valid = False
+                if not valid or (white_temperature < 1700 or white_temperature > 15000):
+                    error_dict["whiteTemperature"] = "White Temperature must be an integer between 1700 and 15000"
+                    error_dict["showAlertText"] = "You must enter an integer between 1700 and 15000 for White Temperature"
+                    return False, values_dict, error_dict
+
+            return True, values_dict
+
+        except StandardError as standard_error_message:
+            self.logger.error(u"Error detected in 'plugin' method 'validateActionConfigUi' for action '{0}'. Line {1} has error='{2}'"
+                              .format(type_id, sys.exc_traceback.tb_lineno, standard_error_message))
+
     def validateDeviceConfigUi(self, values_dict=None, type_id="", dev_id=0):
         try:
             error_dict = indigo.Dict()
@@ -2129,6 +2165,84 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'optionally_set_indigo_2021_device_sub_type'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
+
+    def setWhiteLevelTemperature(self, action, dev):
+        try:
+            dev_id = dev.id
+
+            dev_props = dev.pluginProps
+
+            hubitat_hub_name = ""  # Only needed here to avoid PyCharm flagging a possible error
+            hubitat_device_name = ""  # Only needed here to avoid PyCharm flagging a possible error
+
+            if "hubitatDevice" in dev_props:
+                hubitat_device_name = dev_props["hubitatDevice"]
+                hubitat_hub_name = dev_props.get("hubitatHubName", "")
+                hubitat_hub_dev_id = int(self.globals[HE_HUBS][hubitat_hub_name][HE_INDIGO_HUB_ID])
+            elif "linkedPrimaryIndigoDeviceId" in dev_props:
+                hubitat_device_name = dev_props["associatedHubitatDevice"]
+                linked_indigo_device_id = int(dev_props.get("linkedPrimaryIndigoDeviceId", 0))
+                linked_indigo_dev = indigo.devices[linked_indigo_device_id]
+                linked_dev_props = linked_indigo_dev.pluginProps
+                hubitat_hub_name = linked_dev_props.get("hubitatHubName", "")
+                hubitat_hub_dev_id = int(self.globals[HE_HUBS][hubitat_hub_name][HE_INDIGO_HUB_ID])
+            else:
+                self.logger.warning(u"Unable to perform '{0}' action for '{1}' as unable to resolve Hubitat Hub device.".format(action.description, dev.name))
+                return
+
+            if hubitat_hub_dev_id > 0:
+                if not self.globals[HE_HUBS][hubitat_hub_name][HE_HUB_MQTT_INITIALISED]:
+                    self.logger.warning(u"Unable to perform '{0}' action for '{1}' as Hubitat Hub device '{2}' is not initialised. Is MQTT running?".format(action.description, dev.name, hubitat_hub_name))
+                    return
+            else:
+                self.logger.warning(u"Unable to perform '{0}' action for '{1}' as unable to resolve Hubitat Hub device.".format(action.description, dev.name))
+                return
+
+            mqtt_filter_key = u"{0}|{1}".format(hubitat_hub_name.lower(), hubitat_device_name.lower())
+
+            self.process_set_white_level_temperature(action, dev, hubitat_hub_name, mqtt_filter_key)
+
+        except StandardError, err:
+            self.logger.error(u"Error detected in 'plugin' method 'setWhiteLevelTemperature'. Line '{0}' has error='{1}'"
+                              .format(sys.exc_traceback.tb_lineno, err))
+
+    def process_set_white_level_temperature(self, action, dev, hubitat_hub_name, mqtt_filter_key):
+        try:
+            dev_props = dev.pluginProps
+            hubitat_device_name = dev_props["hubitatDevice"]
+
+            set_white_level = bool(action.props.get("setWhiteLevel", True))
+            white_level = int(float(action.props.get("whiteLevel", 100.0)))
+            set_white_temperature = bool(action.props.get("setWhiteTemperature", True))
+            white_temperature = int(float(action.props.get("whiteTemperature", 3500)))
+
+            kelvin_description = ""  # Only needed to suppress a PyCharm warning!
+
+            if set_white_level:
+                topic = u"{0}/{1}/{2}/dim/set".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name, hubitat_device_name)  # e.g. "homie/home-1/study-lamp_rgbw/dim/set"
+                topic_payload = u"{0}".format(white_level)
+                self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
+                if not set_white_temperature:
+                    self.logger.info(u"sent \"{0}\" set White Level to \"{1}\"".format(dev.name, int(white_level)))
+
+            if set_white_temperature:
+                kelvin = min(ROUNDED_KELVINS, key=lambda x: abs(x - white_temperature))
+                rgb, kelvin_description = ROUNDED_KELVINS[kelvin]
+
+                topic = u"{0}/{1}/{2}/color-temperature/set".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name, hubitat_device_name)  # e.g. "homie/home-1/study-lamp_rgbw/color-temperature/set"
+                topic_payload = u"{0}".format(white_temperature)
+                self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
+                if not set_white_level:
+                    self.logger.info(u"sent \"{0}\" set White Temperature to \"{1}K [{2}]\"".format(dev.name, white_temperature, kelvin_description))
+
+            if set_white_level and set_white_temperature:
+                self.logger.info(u"sent \"{0}\" set White Level to \"{1}\" and White Temperature to \"{2}K [{3}]\"".format(dev.name, int(white_level), white_temperature, kelvin_description))
+
+        except StandardError, err:
+            self.logger.error(u"Error detected in 'plugin' method 'process_set_white_level_temperature'. Line '{0}' has error='{1}'"
+                      .format(sys.exc_traceback.tb_lineno, err))
+
+
     def process_set_color_levels(self, action, dev, hubitat_hub_name, mqtt_filter_key):
         try:
             self.logger.debug(u"processSetColorLevels ACTION:\n{0} ".format(action))
@@ -2159,10 +2273,6 @@ class Plugin(indigo.PluginBase):
 
                 if "whiteTemperature" in action.actionValue:
                     white_temperature = int(action.actionValue["whiteTemperature"])
-                    # if white_temperature < 2500:
-                    #     white_temperature = 2500
-                    # elif white_temperature > 9000:
-                    #     white_temperature = 9000
 
                 kelvin = min(ROUNDED_KELVINS, key=lambda x: abs(x - white_temperature))
                 rgb, kelvin_description = ROUNDED_KELVINS[kelvin]
@@ -2173,9 +2283,7 @@ class Plugin(indigo.PluginBase):
                 topic = u"{0}/{1}/{2}/dim/set".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name, hubitat_device_name)  # e.g. "homie/home-1/study-lamp_rgbw/dim/set"
                 topic_payload = u"{0}".format(white_level)
                 self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
-                self.logger.info(u"sent \"{0}\" set White Level to \"{1}\""
-                                 u" and White Temperature to \"{2}\""
-                                 .format(dev.name, int(white_level), kelvin_description))
+                self.logger.info(u"sent \"{0}\" set White Level to \"{1}\" and White Temperature to \"{2}K [{3}]\"".format(dev.name, int(white_level), white_temperature, kelvin_description))
 
             else:
                 # As neither of "whiteTemperature" or "whiteTemperature" are set - assume mode is Colour
