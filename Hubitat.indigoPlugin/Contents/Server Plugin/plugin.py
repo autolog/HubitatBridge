@@ -157,6 +157,7 @@ class Plugin(indigo.PluginBase):
 
             if dev.deviceTypeId == "tasmotaOutlet":
                 tasmota_key = dev_props["tasmotaDevice"]
+                # Set default topic for tasmota
                 topic = u"cmnd/tasmota_{0}/Power".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Power"
 
             else:
@@ -183,10 +184,10 @@ class Plugin(indigo.PluginBase):
                     self.logger.warning(u"Unable to perform '{0}' action for '{1}' as unable to resolve Hubitat Hub device.".format(action.description, dev.name))
                     return
 
-            mqtt_filter_key = u"{0}|{1}".format(hubitat_hub_name.lower(), hubitat_device_name.lower())
+                # Set default topic for turn on / off / toggle
+                topic = u"{0}/{1}/{2}/onoff/set".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name, hubitat_device_name)  # e.g. "homie/home-1/study-socket-spare/onoff/set"
 
-            # Set defualt topic for turn on / off / toggle
-            topic = u"{0}/{1}/{2}/onoff/set".format(HE_HUB_ROOT_TOPIC, hubitat_hub_name, hubitat_device_name)  # e.g. "homie/home-1/study-socket-spare/onoff/set"
+            mqtt_filter_key = u"{0}|{1}".format(hubitat_hub_name.lower(), hubitat_device_name.lower())
 
             # ##### TURN ON ######
             if action.deviceAction == indigo.kDeviceAction.TurnOn:
