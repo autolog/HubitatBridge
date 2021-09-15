@@ -100,14 +100,14 @@ class ThreadTasmotaHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'run'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def on_publish(self, client, userdata, mid):
+    def on_publish(self, client, userdata, mid):  # noqa [parameter value is not used]
         try:
             pass
         except Exception as err:
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_publish'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def on_connect(self, client, userdata, flags, rc):
+    def on_connect(self, client, userdata, flags, rc):  # noqa [parameter value is not used]
         try:
             indigo.devices[self.tasmota_id].updateStateOnServer(key='status', value="Connected")
             indigo.devices[self.tasmota_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
@@ -126,7 +126,7 @@ class ThreadTasmotaHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_connect'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def on_disconnect(self, client, userdata, rc):
+    def on_disconnect(self, client, userdata, rc):  # noqa [parameter value is not used]
         try:
             if rc != 0:
                 self.tasmotaHandlerLogger.warning(u"'{0}' encountered an unexpected disconnection from MQTT Broker [Code {1}]. Retrying connection ...".format(indigo.devices[self.tasmota_id].name, rc))
@@ -152,19 +152,19 @@ class ThreadTasmotaHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'handle_quit'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def on_subscribe(self, client, userdata, mid, granted_qos):
+    def on_subscribe(self, client, userdata, mid, granted_qos):  # noqa [parameter value is not used]
         try:
             pass
         except Exception as err:
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_subscribe'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def handle_message(self, client, userdata, msg):
+    def handle_message(self, client, userdata, msg):  # noqa [parameter value is not used]
         try:
             # self.mqtt_message_sequence += 1
             # mqtt_message_sequence = '{0}'.format(self.mqtt_message_sequence)
 
-            topics_list = msg.topic.split("/")
+            topics_list = msg.topic.split("/")  # noqa [Duplicated code fragment!]
             payload = str(msg.payload)
             # qos = msg.qos
 
@@ -208,7 +208,7 @@ class ThreadTasmotaHandler(threading.Thread):
 
             tasmota_key = topics_list[2][6:]
 
-            self.mqtt_filter_log_processing(tasmota_key, msg_topic, payload)
+            self.mqtt_filter_log_processing(tasmota_key, msg_topic, payload)  # noqa [Duplicated code fragment!]
 
             self.update_tasmota_status(tasmota_key)
 
@@ -279,8 +279,6 @@ class ThreadTasmotaHandler(threading.Thread):
                                     props[u"version"] = self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE]
                                     dev.replacePluginPropsOnServer(props)
 
-
-
             elif topics_list[3] == "sensors":
                 try:
                     payload_data = json.loads(payload)
@@ -303,7 +301,7 @@ class ThreadTasmotaHandler(threading.Thread):
 
     def handle_message_stat(self, msg_topic, topics_list, payload):
         try:
-            if topics_list[1][0:8] != "tasmota_":
+            if topics_list[1][0:8] != "tasmota_":  # noqa [Duplicated code fragment!]
                 return
             if len(topics_list[1][8:]) != 6:
                 return
@@ -378,7 +376,7 @@ class ThreadTasmotaHandler(threading.Thread):
 
     def handle_message_tele(self, msg_topic, topics_list, payload):
         try:
-            if topics_list[1][0:8] != "tasmota_":
+            if topics_list[1][0:8] != "tasmota_":  # noqa [Duplicated code fragment!]
                 return
             if len(topics_list[1][8:]) != 6:
                 return
@@ -390,7 +388,7 @@ class ThreadTasmotaHandler(threading.Thread):
             tasmota_key = topics_list[1][8:]
             self.mqtt_filter_log_processing(tasmota_key, msg_topic, payload)
 
-            self.update_tasmota_status(tasmota_key)
+            self.update_tasmota_status(tasmota_key)  # noqa [Duplicated code fragment!]
 
             if tasmota_key not in self.globals[TASMOTA][TASMOTA_DEVICES]:
                 self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key] = dict()
@@ -454,7 +452,6 @@ class ThreadTasmotaHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'handle_message_tele'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-
     def mqtt_filter_log_processing(self, tasmota_key, msg_topic, payload):
         log_mqtt_msg = False  # Assume MQTT message should NOT be logged
         # Check if MQTT message filtering required
@@ -465,13 +462,13 @@ class ThreadTasmotaHandler(threading.Thread):
                     log_mqtt_msg = True
 
         if log_mqtt_msg:
-            self.tasmotaHandlerLogger.topic(u"Received from Tasmota: Topic='{0}', Payload='{1}'".format(msg_topic, payload))
+            self.tasmotaHandlerLogger.topic(u"Received from Tasmota: Topic='{0}', Payload='{1}'".format(msg_topic, payload))  # noqa [unresolved attribute reference]
 
     def update_tasmota_status(self, tasmota_key):
         try:
             if tasmota_key not in self.globals[TASMOTA][TASMOTA_QUEUE]:
                 return
-            dev_id = self.globals[TASMOTA][TASMOTA_QUEUE][tasmota_key]
+            # dev_id = self.globals[TASMOTA][TASMOTA_QUEUE][tasmota_key]
             del self.globals[TASMOTA][TASMOTA_QUEUE][tasmota_key]
 
             # self.tasmotaHandlerLogger.warning(u"Requesting status update for '{0}'".format(indigo.devices[dev_id].name))
@@ -485,7 +482,7 @@ class ThreadTasmotaHandler(threading.Thread):
 
         except StandardError, err:
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'update_tasmota_status'. Line '{0}' has error='{1}'"
-                              .format(sys.exc_traceback.tb_lineno, err))
+                                            .format(sys.exc_traceback.tb_lineno, err))
 
     def publish_tasmota_topic(self, tasmota_key, topic, payload):
         try:
@@ -500,11 +497,11 @@ class ThreadTasmotaHandler(threading.Thread):
                         log_mqtt_msg = True
 
             if log_mqtt_msg:
-                self.tasmotaHandlerLogger.topic(u">>> Published to Tasmota: Topic='{0}', Payload='{1}'".format(topic, payload))
+                self.tasmotaHandlerLogger.topic(u">>> Published to Tasmota: Topic='{0}', Payload='{1}'".format(topic, payload))  # noqa [unresolved attribute reference]
 
         except StandardError, err:
             self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'publish_tasmota_topic'. Line '{0}' has error='{1}'"
-                              .format(sys.exc_traceback.tb_lineno, err))
+                                            .format(sys.exc_traceback.tb_lineno, err))
 
     def reset_energy_total(self, tasmota_key, payload_data):
         try:
@@ -639,7 +636,7 @@ class ThreadTasmotaHandler(threading.Thread):
                                     return
                                 minimumPowerLevel = float(dev.pluginProps.get("tasmotaPowerMinimumReportingLevel", 0.0))
                                 reportingPowerHysteresis = float(dev.pluginProps.get("tasmotaPowerReportingHysteresis", 6.0))
-                                if reportingPowerHysteresis > 0.0:
+                                if reportingPowerHysteresis > 0.0:  # noqa [Duplicated code fragment!]
                                     reportingPowerHysteresis = reportingPowerHysteresis / 2
                                 previousPowerLevel = float(dev.states["curEnergyLevel"])
                                 report_power_state = False
@@ -681,7 +678,7 @@ class ThreadTasmotaHandler(threading.Thread):
 
     def processDecimalPlaces(self, field, decimal_places, units, space_before_units):
         try:
-            units_plus_optional_space = u" {0}".format(units) if space_before_units else u"{0}".format(units)
+            units_plus_optional_space = u" {0}".format(units) if space_before_units else u"{0}".format(units)  # noqa [Duplicated code fragment!]
             if decimal_places == 0:
                 return int(field), u"{0}{1}".format(int(field), units_plus_optional_space)
             else:

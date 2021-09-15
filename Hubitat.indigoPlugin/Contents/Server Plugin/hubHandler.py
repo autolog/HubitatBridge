@@ -5,6 +5,7 @@
 #
 
 try:
+    # noinspection PyUnresolvedReferences
     import indigo
 except ImportError, e:
     pass
@@ -100,7 +101,7 @@ class ThreadHubHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'run'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def on_connect(self, client, userdata, flags, rc):
+    def on_connect(self, client, userdata, flags, rc):  # noqa [Unused parameter values]
         try:
             indigo.devices[self.hubitat_hub_id].updateStateOnServer(key='status', value="Connected")
             indigo.devices[self.hubitat_hub_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
@@ -118,7 +119,7 @@ class ThreadHubHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'on_connect'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def on_disconnect(self, client, userdata, rc):
+    def on_disconnect(self, client, userdata, rc):  # noqa [Unused parameter values]
         try:
             if rc != 0:
                 self.hubHandlerLogger.warning(
@@ -145,19 +146,19 @@ class ThreadHubHandler(threading.Thread):
             trace_back = sys.exc_info()[2]
             self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'handle_quit'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def on_subscribe(self, client, userdata, mid, granted_qos):
+    def on_subscribe(self, client, userdata, mid, granted_qos):  # noqa [Unused parameter values]
         try:
             pass
         except Exception as err:
             trace_back = sys.exc_info()[2]
             self.hubHandlerLogger.error(u"Error detected in 'hubHandler' method 'on_subscribe'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
 
-    def handle_message(self, client, userdata, msg):
+    def handle_message(self, client, userdata, msg):  # noqa [Unused parameter values]
         try:
             # self.mqtt_message_sequence += 1
             # mqtt_message_sequence = '{0}'.format(self.mqtt_message_sequence)
 
-            topics = msg.topic.split("/")
+            topics = msg.topic.split("/")  # noqa [Duplicated code fragment!]
             payload = str(msg.payload)
             # qos = msg.qos
 
@@ -208,7 +209,7 @@ class ThreadHubHandler(threading.Thread):
             # if HE_MQTT_FILTERS in self.globals:
             #     if len(self.globals[HE_MQTT_FILTERS]) > 0:
             #         mqtt_filter_key = u"{0}|||{1}".format(self.hubitat_hub_name.lower(), hubitat_device_name.lower())
-            #         # As entries exist in the filter list, only log MQTT message in Hubitat device in the filterlist
+            #         # As entries exist in the filter list, only log MQTT message in Hubitat device in the filter list
             #         if mqtt_filter_key not in self.globals[HE_MQTT_FILTERS]:
             #             log_mqtt_msg = False  # As Hubitat device not in the filter list (and filter entries present) - don't log MQTT message
 
@@ -241,7 +242,7 @@ class ThreadHubHandler(threading.Thread):
                                 elif payload[0:5] == "armed":
                                     hsm_dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
                                     # hsm_dev.updateStateOnServer(key='alarmStatus', value=payload)
-                                if hsm_dev.states["hsmAlert"] == "cancel"  or hsm_dev.states["hsmAlert"]  == "none" or payload == "disarmed":
+                                if hsm_dev.states["hsmAlert"] == "cancel" or hsm_dev.states["hsmAlert"] == "none" or payload == "disarmed":
                                     hsm_dev.updateStateOnServer(key='alarmStatus', value=payload)
                                 if not bool(hub_dev.pluginProps.get("hideHsmBroadcast", False)):
                                     self.hubHandlerLogger.info(u"received \"{0}\" Hubitat Safety Monitor Status \"{1}\" event".format(hsm_dev.name, payload))
@@ -545,9 +546,9 @@ class ThreadHubHandler(threading.Thread):
 
                         broadcast_device_name = dev.name
                         if uspHumidityIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
-                            dev.updateStateOnServer(key='humidityInput1', value=value, uiValue=uiValue)
+                            dev.updateStateOnServer(key='humidity', value=value, uiValue=uiValue)
                         # elif uspHumidityIndigo in (INDIGO_SECONDARY_DEVICE_ADDITIONAL_STATE, INDIGO_SECONDARY_DEVICE):
-                        elif uspHumidityIndigo in (INDIGO_SECONDARY_DEVICE):
+                        elif uspHumidityIndigo in INDIGO_SECONDARY_DEVICE:
                             # Find linked device in device group
                             linked_dev_id = self.determine_secondary_device_id(dev_id, "humiditySensorSecondary")
                             if bool(linked_dev_id):
@@ -733,7 +734,7 @@ class ThreadHubHandler(threading.Thread):
                             return
                         minimumPowerLevel = float(dev.pluginProps.get("uspPowerMinimumReportingLevel", 0.0))
                         reportingPowerHysteresis = float(dev.pluginProps.get("uspPowerReportingHysteresis", 6.0))
-                        if reportingPowerHysteresis > 0.0:
+                        if reportingPowerHysteresis > 0.0:  # noqa [Duplicated code fragment!]
                             reportingPowerHysteresis = reportingPowerHysteresis / 2
                         previousPowerLevel = float(dev.states["curEnergyLevel"])
                         report_power_state = False
@@ -870,7 +871,7 @@ class ThreadHubHandler(threading.Thread):
                     if dev.pluginProps.get("uspSetpoint", False):
                         try:
                             setpointUnitsConversion = dev.pluginProps.get("uspSetpointUnitsConversion", "C")
-                            if setpointUnitsConversion in ["C", "F>C"]:
+                            if setpointUnitsConversion in ["C", "F>C"]:  # noqa [Duplicated code fragment!]
                                 setpoint_unit_ui = u"ºC"
                             else:
                                 setpoint_unit_ui = u"ºF"
@@ -898,7 +899,7 @@ class ThreadHubHandler(threading.Thread):
                     if dev.pluginProps.get("uspTemperature", False):
                         try:
                             temperatureUnitsConversion = dev.pluginProps.get("uspTemperatureUnitsConversion", "C")
-                            if temperatureUnitsConversion in ["C", "F>C"]:
+                            if temperatureUnitsConversion in ["C", "F>C"]:  # noqa [Duplicated code fragment!]
                                 temperature_unit_ui = u"ºC"
                             else:
                                 temperature_unit_ui = u"ºF"
@@ -1003,7 +1004,7 @@ class ThreadHubHandler(threading.Thread):
 
     def processDecimalPlaces(self, field, decimal_places, units, space_before_units):
         try:
-            units_plus_optional_space = u" {0}".format(units) if space_before_units else u"{0}".format(units)
+            units_plus_optional_space = u" {0}".format(units) if space_before_units else u"{0}".format(units)  # noqa [Duplicated code fragment!]
             if decimal_places == 0:
                 return int(field), u"{0}{1}".format(int(field), units_plus_optional_space)
             else:
@@ -1027,4 +1028,4 @@ class ThreadHubHandler(threading.Thread):
                     log_mqtt_msg = True
 
         if log_mqtt_msg:
-            self.hubHandlerLogger.topic(u"Received from '{0}': Topic='{1}', Payload='{2}'".format(hub_name, topics, payload))
+            self.hubHandlerLogger.topic(u"Received from '{0}': Topic='{1}', Payload='{2}'".format(hub_name, topics, payload))  # noqa [Unresolved attribute reference]

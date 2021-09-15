@@ -14,7 +14,6 @@ import re
 import socket
 import sys
 import threading
-import time
 
 
 # ============================== Custom Imports ===============================
@@ -37,6 +36,7 @@ __title__     = u"Hubitat Bridge Plugin for Indigo"
 __version__   = u"unused"
 
 
+# noinspection PyPep8Naming
 class Plugin(indigo.PluginBase):
 
     def __init__(self, plugin_id, plugin_display_name, plugin_version, plugin_prefs):
@@ -46,7 +46,7 @@ class Plugin(indigo.PluginBase):
 
         logging.addLevelName(K_LOG_LEVEL_TOPIC, "topic")
 
-        def topic(self, message, *args, **kws):
+        def topic(self, message, *args, **kws):  # noqa [Shadoeing names from outer scope = self]
             # if self.isEnabledFor(K_LOG_LEVEL_TOPIC):
             # Yes, logger takes its '*args' as 'args'.
             self.log(K_LOG_LEVEL_TOPIC, message, *args, **kws)
@@ -196,7 +196,7 @@ class Plugin(indigo.PluginBase):
                     self.logger.info(u"sending \"turn on\" to \"{0}\"".format(dev.name))
                     if dev.deviceTypeId == "tasmotaOutlet":
                         topic_payload = "On"
-                        self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
+                        self.publish_tasmota_topic(tasmota_key, topic, topic_payload)  # noqa [Local variable 'tasmota_key' might be referenced before assignment]
                     else:
                         topic_payload = "true"
                         self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
@@ -229,7 +229,7 @@ class Plugin(indigo.PluginBase):
                     topic_payload = u"{0}".format(valve_level)
                     self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
 
-                    self.logger.info(u"sending \"Open Valve to {0} %\" to \"{1}\"".format(valve_level,dev.name))
+                    self.logger.info(u"sending \"Open Valve to {0} %\" to \"{1}\"".format(valve_level, dev.name))
 
             # ##### TURN OFF ######
             elif action.deviceAction == indigo.kDeviceAction.TurnOff:
@@ -238,7 +238,7 @@ class Plugin(indigo.PluginBase):
                     self.logger.info(u"sending \"turn off\" to \"{0}\"".format(dev.name))
                     if dev.deviceTypeId == "tasmotaOutlet":
                         topic_payload = "Off"
-                        self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
+                        self.publish_tasmota_topic(tasmota_key, topic, topic_payload)  # noqa [Local variable 'tasmota_key' might be referenced before assignment]
                     else:
                         topic_payload = "false"
                         self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
@@ -273,7 +273,7 @@ class Plugin(indigo.PluginBase):
                     self.logger.info(u"sending \"toggle off\" to \"{0}\"".format(dev.name))
                     if dev.deviceTypeId == "tasmotaOutlet":
                         topic_payload = "Off"
-                        self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
+                        self.publish_tasmota_topic(tasmota_key, topic, topic_payload)  # noqa [Local variable 'tasmota_key' might be referenced before assignment]
                     else:
                         topic_payload = "false"
                         self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
@@ -282,7 +282,8 @@ class Plugin(indigo.PluginBase):
                     self.logger.info(u"sending \"toggle on\" to \"{0}\"".format(dev.name))
                     if dev.deviceTypeId == "tasmotaOutlet":
                         topic_payload = "On"
-                        self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
+                        # noinspection PyUnboundLocalVariable
+                        self.publish_tasmota_topic(tasmota_key, topic, topic_payload)  # noqa [Local variable 'tasmota_key' might be referenced before assignment] 
                     else:
                         topic_payload = "true"
                         self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
@@ -527,7 +528,7 @@ class Plugin(indigo.PluginBase):
                 elif action.deviceAction == indigo.kUniversalAction.EnergyReset:
                     topic = u"cmnd/tasmota_{0}/EnergyReset".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/EnergyReset"
                     topic_payload = "0"  # Zero value
-                    for i in range (1,4):
+                    for i in range(1, 4):
                         topic_updated = u"{0}{1}".format(topic, i)  # Modifies e.g. "cmnd/tasmota_6E641A/EnergyReset" > "cmnd/tasmota_6E641A/EnergyReset1" etc
                         self.publish_tasmota_topic(tasmota_key, topic_updated, topic_payload)
                     topic = u"cmnd/tasmota_{0}/Status".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Status"
@@ -964,7 +965,6 @@ class Plugin(indigo.PluginBase):
 
                 return
 
-
             # As Hubitat device is being stopped - delete its id from internal Hubitat Devices table.
 
             dev_props = dev.pluginProps
@@ -1090,7 +1090,7 @@ class Plugin(indigo.PluginBase):
                     plugin_props["uspVoltage"] = False
                     plugin_props["uspWhiteTemperature"] = False
 
-            elif type_id in ("accelerationSensorSecondary", "illuminanceSensorSecondary",
+            elif type_id in ("accelerationSensorSecondary", "humiditySensorSecondary", "illuminanceSensorSecondary",
                              "motionSensorSecondary", "presenceSensorSecondary", "pressureSensorSecondary",
                              "temperatureSensorSecondary", "valveSecondary"):
                 plugin_props['primaryIndigoDevice'] = False
@@ -1145,6 +1145,13 @@ class Plugin(indigo.PluginBase):
                 button_state = self.getDeviceStateDictForStringType(button_state_id, button_trigger_label, button_control_page_label)
                 if button_state not in state_list:
                     state_list.append(button_state)
+
+            # humidity State
+            if (bool(dev.pluginProps.get("uspHumidity", False)) and
+                    dev.pluginProps.get("uspHumidityIndigo", INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE) == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE):
+                humidity_state = self.getDeviceStateDictForNumberType(u"humidity", u"Humidity Changed", u"Humidity")
+                if humidity_state not in state_list:
+                    state_list.append(humidity_state)
 
             # Illuminance State
             if (bool(dev.pluginProps.get("uspIlluminance", False)) and
@@ -1238,16 +1245,16 @@ class Plugin(indigo.PluginBase):
             try:
                 # As MQTT CLIENT PREFIX is empty, try setting it to Computer Name
                 prefs_config_ui_values["mqttClientPrefix"] = socket.gethostbyaddr(socket.gethostname())[0].split(".")[0]  # Used in creation of MQTT Client Id
-            except:
+            except StandardError:
                 pass
 
         return prefs_config_ui_values
 
-    def refreshUiCallback(self, valuesDict, typeId="", devId=None):
-        errorsDict = indigo.Dict()
+    def refreshUiCallback(self, valuesDict, typeId="", devId=None):  # noqa [parameter value is not used]
+        errors_dict = indigo.Dict()
         try:
             if typeId == "hubitatElevationHub":
-                return valuesDict, errorsDict
+                return valuesDict, errors_dict
 
             # self.logger.warning(u"'refreshUiCallback' valuesDict:'{0}'".format(valuesDict["hubitatDevice"]))
 
@@ -1291,7 +1298,7 @@ class Plugin(indigo.PluginBase):
                 usp_field_id_check_2 = "uspSetpointIndigo"
                 valuesDict[usp_field_id_check_2] = INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE
 
-            for usp_field_id in ("uspAccelerationIndigo", "uspButtonIndigo" ,"uspContactIndigo", "uspDimmerIndigo",
+            for usp_field_id in ("uspAccelerationIndigo", "uspButtonIndigo", "uspContactIndigo", "uspDimmerIndigo",
                                  "uspEnergyIndigo", "uspHumidityIndigo", "uspIlluminanceIndigo", "uspMotionIndigo",
                                  "uspOnOffIndigo", "uspPowerIndigo", "uspPresenceIndigo", "uspPressureIndigo",
                                  "uspTemperatureIndigo", "uspSetpointIndigo", "uspValveIndigo", "uspVoltageIndigo"):
@@ -1305,7 +1312,7 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'getDeviceStateList'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
-        return valuesDict, errorsDict
+        return valuesDict, errors_dict
 
     def shutdown(self):
         # self.mqtt_client.disconnect()
@@ -1321,7 +1328,7 @@ class Plugin(indigo.PluginBase):
     def stopConcurrentThread(self):
         self.logger.info(u"Hubitat plugin closing down")
 
-    def validateActionConfigUi(self, values_dict, type_id, action_id):
+    def validateActionConfigUi(self, values_dict, type_id, action_id):  # noqa [parameter value is not used]
         try:
             error_dict = indigo.Dict()
 
@@ -1558,7 +1565,7 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'validateDeviceConfigUi' for device '{0}'. Line {1} has error='{2}'"
                               .format(indigo.devices[dev_id].name, sys.exc_traceback.tb_lineno, standard_error_message))
 
-    def validatePrefsConfigUi(self, values_dict):
+    def validatePrefsConfigUi(self, values_dict): # noqa [Method is not declared static] 
 
         mqtt_client_prefix = values_dict.get("mqttClientPrefix", "")
 
@@ -1580,7 +1587,7 @@ class Plugin(indigo.PluginBase):
             error_dict = indigo.Dict()
             error_dict['uspTemperature'] = error_message
             error_dict["showAlertText"] = error_message
-            return (False, values_dict, error_dict)
+            return False, values_dict, error_dict
 
         if len(values_dict["mqttHubitatMessageFilter"]) == 0:
             values_dict["mqttHubitatMessageFilter"] = ["-0-"]  # '-- Don't Log Any Devices --'
@@ -1606,8 +1613,7 @@ class Plugin(indigo.PluginBase):
                     values_dict["mqttTasmotaMessageFilter"] = [u"-1-|||-- Log All Devices --"]
                     break
 
-        return (True, values_dict)
-
+        return True, values_dict
 
     #################################
     #
@@ -1615,7 +1621,7 @@ class Plugin(indigo.PluginBase):
     #
     #################################
 
-    def listDeviceStateMenuOptions(self, filter="", valuesDict=None, typeId="", targetId=0):
+    def listDeviceStateMenuOptions(self, filter="", valuesDict=None, typeId="", targetId=0):   # noqa [parameter value is not used]
         try:
 
             # <Option value="0">Primary Device - Main UI State</Option>
@@ -1646,7 +1652,7 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'listDeviceStateMenuOptions' for device '{0}'. Line {1} has error='{2}'"
                               .format(indigo.devices[targetId].name, sys.exc_traceback.tb_lineno, standard_error_message))
 
-    def listHubitatHubs(self, filter="", valuesDict=None, typeId="", targetId=0):
+    def listHubitatHubs(self, filter="", valuesDict=None, typeId="", targetId=0):  # noqa [parameter value is not used]
         try:
             self.logger.debug(u"List Hubitat Hubs")
 
@@ -1666,7 +1672,7 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'listHubitatHubs'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
-    def listHubitatHubSelected(self, valuesDict, typeId, devId):
+    def listHubitatHubSelected(self, valuesDict, typeId, devId):  # noqa [parameter value is not used]
         try:
             # do whatever you need to here
             #   typeId is the device type specified in the Devices.xml
@@ -1679,7 +1685,7 @@ class Plugin(indigo.PluginBase):
 
         return valuesDict
 
-    def listHubitatDevices(self, filter="", valuesDict=None, typeId="", targetId=0):
+    def listHubitatDevices(self, filter="", valuesDict=None, typeId="", targetId=0):  # noqa [parameter value is not used]
         try:
             hubitat_devices_list = list()
 
@@ -1748,9 +1754,9 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'listHubitatDevices'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
-    def listTasmotaDeviceSelected(self, valuesDict, typeId, devId):
+    def listTasmotaDeviceSelected(self, valuesDict, typeId, devId):  # noqa [parameter value is not used]
         try:
-            props = indigo.devices[devId].ownerProps
+            # props = indigo.devices[devId].ownerProps
             pass
         except StandardError as standard_error_message:
             self.logger.error(u"Error detected in 'plugin' method 'listTasmotaDeviceSelected'. Line '{0}' has error='{1}'"
@@ -1965,7 +1971,7 @@ class Plugin(indigo.PluginBase):
 
         return valuesDict
 
-    def listHubitatDeviceProperties(self, filter="", valuesDict=None, typeId="", targetId=0):
+    def listHubitatDeviceProperties(self, filter="", valuesDict=None, typeId="", targetId=0):  # noqa [parameter value is not used]
 
         try:
             hubitat_device_name = valuesDict.get("hubitatDevice", "-NONE-")
@@ -1978,7 +1984,7 @@ class Plugin(indigo.PluginBase):
             if hubitat_hub_name == "-SELECT-" or hubitat_hub_name == "-NONE-":
                 return hubitat_device_properties_list
 
-            dev = indigo.devices[targetId]
+            # dev = indigo.devices[targetId]
             try:
                 hubitat_hub_dev_id = int(self.globals[HE_HUBS][hubitat_hub_name][HE_INDIGO_HUB_ID])
             except IndexError:
@@ -2028,7 +2034,7 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'listHubitatDeviceSelected'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
-    def listTasmotaDevices(self, filter="", valuesDict=None, typeId="", targetId=0):
+    def listTasmotaDevices(self, filter="", valuesDict=None, typeId="", targetId=0):  # noqa [parameter value is not used]
         try:
             tasmota_devices_list = []
 
@@ -2053,7 +2059,7 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'listTasmotaDevices'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
-    def mqttListHubitatDevices(self, filter="", valuesDict=None, typeId="", targetId=0):
+    def mqttListHubitatDevices(self, filter="", valuesDict=None, typeId="", targetId=0):  # noqa [parameter value is not used]
         try:
             hubitat_devices_list = []
 
@@ -2076,7 +2082,7 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'mqttListHubitatDevices'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
-    def mqttListTasmotaDevices(self, filter="", valuesDict=None, typeId="", targetId=0):
+    def mqttListTasmotaDevices(self, filter="", valuesDict=None, typeId="", targetId=0):  # noqa [parameter value is not used]
         try:
             tasmota_devices_list = []
 
@@ -2099,9 +2105,9 @@ class Plugin(indigo.PluginBase):
 
     def refreshHubitatDevice(self, valuesDict=None, typeId="", targetId=0):
         try:
-            valuesDictUpdated = self.listHubitatDeviceSelected(valuesDict, typeId, targetId)
+            values_dict_updated = self.listHubitatDeviceSelected(valuesDict, typeId, targetId)
 
-            return valuesDictUpdated
+            return values_dict_updated
 
         except StandardError as standard_error_message:
             self.logger.error(u"Error detected in 'plugin' method 'refreshHubitatDevice'. Line '{0}' has error='{1}'"
@@ -2166,15 +2172,11 @@ class Plugin(indigo.PluginBase):
             self.logger.error(u"Error detected in 'plugin' method 'optionally_set_indigo_2021_device_sub_type'. Line '{0}' has error='{1}'"
                               .format(sys.exc_traceback.tb_lineno, standard_error_message))
 
-
     def setWhiteLevelTemperature(self, action, dev):
         try:
-            dev_id = dev.id
+            # dev_id = dev.id
 
             dev_props = dev.pluginProps
-
-            hubitat_hub_name = ""  # Only needed here to avoid PyCharm flagging a possible error
-            hubitat_device_name = ""  # Only needed here to avoid PyCharm flagging a possible error
 
             if "hubitatDevice" in dev_props:
                 hubitat_device_name = dev_props["hubitatDevice"]
@@ -2241,8 +2243,7 @@ class Plugin(indigo.PluginBase):
 
         except StandardError, err:
             self.logger.error(u"Error detected in 'plugin' method 'process_set_white_level_temperature'. Line '{0}' has error='{1}'"
-                      .format(sys.exc_traceback.tb_lineno, err))
-
+                              .format(sys.exc_traceback.tb_lineno, err))
 
     def process_set_color_levels(self, action, dev, hubitat_hub_name, mqtt_filter_key):
         try:
@@ -2341,7 +2342,7 @@ class Plugin(indigo.PluginBase):
             existing_secondary_dev_id_list = indigo.device.getGroupList(hub_dev_id)
             existing_secondary_dev_id_list.remove(hub_dev_id)  # Remove Hub device
 
-            if len(existing_secondary_dev_id_list) > 0:  # Check if HSM sceondary device already created
+            if len(existing_secondary_dev_id_list) > 0:  # Check if HSM secondary device already created
                 return
 
             hsm_type_id = "hsmSensorSecondary"
@@ -2520,14 +2521,14 @@ class Plugin(indigo.PluginBase):
                         primary_hubitat_device = primary_props["hubitatDevice"]
 
                         secondary_dev = indigo.device.create(protocol=indigo.kProtocol.Plugin,
-                                                                address=primary_hubitat_device,
-                                                                description="",
-                                                                name=secondary_name,
-                                                                folder=primary_dev.folderId,
-                                                                pluginId="com.autologplugin.indigoplugin.hubitat",
-                                                                deviceTypeId=secondary_type_id,
-                                                                groupWithDevice=primary_dev_id,
-                                                                props=props_dict)
+                                                             address=primary_hubitat_device,
+                                                             description="",
+                                                             name=secondary_name,
+                                                             folder=primary_dev.folderId,
+                                                             pluginId="com.autologplugin.indigoplugin.hubitat",
+                                                             deviceTypeId=secondary_type_id,
+                                                             groupWithDevice=primary_dev_id,
+                                                             props=props_dict)
 
                         # Manually need to set the model and subModel names (for UI only)
                         secondary_dev_id = secondary_dev.id
@@ -2580,8 +2581,7 @@ class Plugin(indigo.PluginBase):
                         log_mqtt_msg = True
 
             if log_mqtt_msg:
-                self.logger.topic(
-                    u">>> Published to '{0}': Topic='{1}', Payload='{2}'".format(hubitat_hub_name, topic, payload))
+                self.logger.topic(u">>> Published to '{0}': Topic='{1}', Payload='{2}'".format(hubitat_hub_name, topic, payload))  # noqa [unresolved attribute reference]
 
         except StandardError, err:
             self.logger.error(u"Error detected in 'plugin' method 'publish_hubitat_topic'. Line '{0}' has error='{1}'"
@@ -2589,7 +2589,7 @@ class Plugin(indigo.PluginBase):
 
     def publish_tasmota_topic(self, tasmota_key, topic, payload):
         try:
-            rc = self.globals[TASMOTA][TASMOTA_MQTT_CLIENT].publish(topic, payload, 2)  # QOS=2
+            rc = self.globals[TASMOTA][TASMOTA_MQTT_CLIENT].publish(topic, payload, 2)  # noqa [parameter value is not used] - n.b. QOS=2
             # self.logger.warning(u">>> Published to Tasmota: RC = {2}, Topic='{0}', Payload='{1}'".format(topic, payload, rc))
 
             log_mqtt_msg = False  # Assume MQTT message should NOT be logged
@@ -2601,7 +2601,7 @@ class Plugin(indigo.PluginBase):
                         log_mqtt_msg = True
 
             if log_mqtt_msg:
-                self.logger.topic(u">>> Published to Tasmota: Topic='{0}', Payload='{1}'".format(topic, payload))
+                self.logger.topic(u">>> Published to Tasmota: Topic='{0}', Payload='{1}'".format(topic, payload))  # noqa [unresolved attribute reference]
 
         except StandardError, err:
             self.logger.error(u"Error detected in 'plugin' method 'publish_tasmota_topic'. Line '{0}' has error='{1}'"
