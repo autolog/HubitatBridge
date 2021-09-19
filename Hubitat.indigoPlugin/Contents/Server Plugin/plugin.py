@@ -596,6 +596,10 @@ class Plugin(indigo.PluginBase):
                 pass
             elif type_id == "dimmer":
                 pass
+            elif type_id == "humidity":
+                pass
+            elif type_id == "illuminance":
+                pass
             elif type_id == "motionSensor":
                 pass
             elif type_id == "multiSensor":
@@ -613,6 +617,8 @@ class Plugin(indigo.PluginBase):
             elif type_id == "accelerationSensorSecondary":
                 pass
             elif type_id == "hsmSensorSecondary":
+                pass
+            elif type_id == "humiditySensorSecondary":
                 pass
             elif type_id == "illuminanceSensorSecondary":
                 pass
@@ -1023,7 +1029,7 @@ class Plugin(indigo.PluginBase):
                 if "tasmotaDevice" not in plugin_props:
                     plugin_props["tasmotaDevice"] = "-SELECT-"  # Name of Tasmota Device - Default: "-SELECT-", "-- Select Tasmota Device --"
 
-                # TODO: Initialise Power pr0ps if not set-up
+                # TODO: Initialise Power props if not set-up
 
             elif type_id == "hubitatElevationHub":
                 if "hub_name" not in plugin_props:
@@ -1033,7 +1039,7 @@ class Plugin(indigo.PluginBase):
                 if "mqtt_broker_port" not in plugin_props:
                     plugin_props["mqtt_broker_port"] = "1883"  # Port of MQTT Broker - Default = "1883" if not present
 
-            elif type_id in ("button", "contactSensor", "motionSensor", "multiSensor", "outlet", "temperatureSensor", "thermostat", "dimmer"):
+            elif type_id in HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES:
                 plugin_props["primaryIndigoDevice"] = True
                 if "hubitatDevice" not in plugin_props:
                     plugin_props["hubitatDevice"] = "-SELECT-"  # Name of Hubitat Elevation Device - Default: "-SELECT-", "-- Select Hubitat Device(s) --"
@@ -1280,6 +1286,12 @@ class Plugin(indigo.PluginBase):
                 valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
                 usp_field_id_check_2 = "uspOnOffIndigo"
                 valuesDict[usp_field_id_check_2] = INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE
+            elif typeId == "humiditySensor":
+                usp_field_id_check_1 = "uspHumidityIndigo"
+                valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
+            elif typeId == "illuminanceSensor":
+                usp_field_id_check_1 = "uspIlluminanceIndigo"
+                valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
             elif typeId == "motionSensor":
                 usp_field_id_check_1 = "uspMotionIndigo"
                 valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
@@ -1379,7 +1391,7 @@ class Plugin(indigo.PluginBase):
 
             # Start of Special validation for linked devices [Sub-Models]
 
-            if type_id not in ("button", "contactSensor", "motionSensor", "multiSensor", "outlet", "temperatureSensor", "thermostat", "dimmer"):
+            if type_id not in HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES:
                 return True, values_dict
 
             # ^^^ - End of Special validation for linked devices [Sub-Models]
@@ -1480,6 +1492,24 @@ class Plugin(indigo.PluginBase):
                             error_message = u"Kelvin Minimum must be an integer"
                             error_dict['uspKelvinMaximum'] = error_message
                             error_dict["showAlertText"] = error_message
+
+            elif type_id == "humiditySensor":
+                # Humidity Sensor validation and option settings
+                if not values_dict.get("uspHumidity", False):
+                    error_message = u"An Indigo Humidity Sensor device requires an association to the Hubitat 'humidity' property"
+                    error_dict['uspHumidity'] = error_message
+                    error_dict["showAlertText"] = error_message
+                else:
+                    values_dict["SupportsSensorValue"] = True
+
+            elif type_id == "illuminanceSensor":
+                # Illuminance Sensor validation and option settings
+                if not values_dict.get("uspIlluminance", False):
+                    error_message = u"An Indigo Illuminance Sensor device requires an association to the Hubitat 'illuminance' property"
+                    error_dict['uspIlluminance'] = error_message
+                    error_dict["showAlertText"] = error_message
+                else:
+                    values_dict["SupportsSensorValue"] = True
 
             elif type_id == "motionSensor":
                 # Motion Sensor validation and option settings
@@ -1633,6 +1663,7 @@ class Plugin(indigo.PluginBase):
                     (filter == "contactSensor" and typeId == "contactSensor") or
                     (filter == "dimmer" and typeId == "dimmer") or
                     (filter == "humiditySensor" and typeId == "humiditySensor") or
+                    (filter == "illuminanceSensor" and typeId == "illuminanceSensor") or
                     (filter == "motionSensor" and typeId == "motionSensor") or
                     (filter == "motionSensor" and typeId == "multiSensor") or
                     (filter == "onoff" and typeId == "outlet") or
@@ -2131,6 +2162,10 @@ class Plugin(indigo.PluginBase):
                 if dev.subType != indigo.kSensorDeviceSubType.Humidity:
                     dev.subType = indigo.kSensorDeviceSubType.Humidity
                     dev.replaceOnServer()
+            elif dev.deviceTypeId == "illuminanceSensor" or dev.deviceTypeId == "illumianceSensorSecondary":
+                if dev.subType != indigo.kSensorDeviceSubType.Illuminance:
+                    dev.subType = indigo.kSensorDeviceSubType.Illuminance
+                    dev.replaceOnServer()
             elif dev.deviceTypeId == "motionSensor" or dev.deviceTypeId == "multiSensor" or dev.deviceTypeId == "motionSensorSecondary":
                 if dev.subType != indigo.kSensorDeviceSubType.Motion:
                     dev.subType = indigo.kSensorDeviceSubType.Motion
@@ -2146,10 +2181,6 @@ class Plugin(indigo.PluginBase):
             elif dev.deviceTypeId == "accelerationSensorSecondary":
                 if dev.subType != indigo.kDeviceSubType.Security:
                     dev.subType = indigo.kDeviceSubType.Security
-                    dev.replaceOnServer()
-            elif dev.deviceTypeId == "illuminanceSensorSecondary":
-                if dev.subType != indigo.kSensorDeviceSubType.Illuminance:
-                    dev.subType = indigo.kSensorDeviceSubType.Illuminance
                     dev.replaceOnServer()
             elif dev.deviceTypeId == "presenceSensorSecondary":
                 if dev.subType != indigo.kSensorDeviceSubType.Presence:

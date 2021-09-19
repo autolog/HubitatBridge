@@ -545,7 +545,11 @@ class ThreadHubHandler(threading.Thread):
                         uspHumidityIndigo = dev.pluginProps.get("uspHumidityIndigo", INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE)
 
                         broadcast_device_name = dev.name
-                        if uspHumidityIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
+                        if uspHumidityIndigo == INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE:
+                            dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
+                            dev.updateStateImageOnServer(indigo.kStateImageSel.HumiditySensor)
+
+                        elif uspHumidityIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
                             dev.updateStateOnServer(key='humidity', value=value, uiValue=uiValue)
                         # elif uspHumidityIndigo in (INDIGO_SECONDARY_DEVICE_ADDITIONAL_STATE, INDIGO_SECONDARY_DEVICE):
                         elif uspHumidityIndigo in INDIGO_SECONDARY_DEVICE:
@@ -590,7 +594,13 @@ class ThreadHubHandler(threading.Thread):
                         uspIlluminanceIndigo = dev.pluginProps.get("uspIlluminanceIndigo", INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE)
 
                         broadcast_device_name = dev.name
-                        if uspIlluminanceIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
+                        if uspIlluminanceIndigo == INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE:
+                            dev.updateStateOnServer(key='sensorValue', value=value, uiValue=uiValue)
+                            if value:
+                                dev.updateStateImageOnServer(indigo.kStateImageSel.LightSensorOn)
+                            else:
+                                dev.updateStateImageOnServer(indigo.kStateImageSel.LightSensor)
+                        elif uspIlluminanceIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
                             dev.updateStateOnServer(key='illuminance', value=value, uiValue=uiValue)
                         elif uspIlluminanceIndigo == INDIGO_SECONDARY_DEVICE:
                             # Find linked device in device group

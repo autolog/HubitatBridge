@@ -8,7 +8,7 @@
 
     <Field id="warning" type="label" visibleBindingId="member_of_device_group" visibleBindingValue="false"
             fontColor="red">
-        <Label>You are not allowed to directly create this secondary device as it will be automatically created and associated with a primary device of a device group if it is required. Cancel and then delete this device.</Label>
+        <Label>You are not allowed to directly create or edit this secondary device as it will be automatically created and associated with a primary device of a device group if it is required. Cancel and then delete this device.</Label>
     </Field>
 
     <Field id="info" type="label" visibleBindingId="member_of_device_group" visibleBindingValue="true">

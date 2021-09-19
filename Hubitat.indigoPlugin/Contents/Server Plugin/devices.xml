@@ -192,6 +192,15 @@
 		</ConfigUI>
 	</Device>
 
+    <!-- Illuminance Sensor -->
+    <Device id="illuminanceSensor" type="sensor" subType="indigo.kSensorDeviceSubType.Illuminance">
+        <Name>Illuminance Sensor</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
+		</ConfigUI>
+	</Device>
+
     <!-- Motion Sensor -->
     <Device id="motionSensor" type="sensor" subType="indigo.kSensorDeviceSubType.Motion">
         <Name>Motion Sensor</Name>
@@ -295,6 +304,7 @@
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
+        <UiDisplayStateId>humidity</UiDisplayStateId>
 	</Device>
 
     <!-- Illuminance Sensor [Secondary] -->
