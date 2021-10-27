@@ -1778,7 +1778,8 @@ class Plugin(indigo.PluginBase):
                     hubitat_devices_list.append(("-FIRST-", "^^^ Select Hubitat Hub First ^^^"))
                 else:
                     hubitat_devices_list = list()
-                    hubitat_devices_list.append(("-NONE-", "No \"{}\" devices available"))
+                    hubitat_devices_list.append(("-SELECT-", "No \"{0}\" devices available".format(typeId)))
+
                 return hubitat_devices_list
 
         except StandardError as standard_error_message:
