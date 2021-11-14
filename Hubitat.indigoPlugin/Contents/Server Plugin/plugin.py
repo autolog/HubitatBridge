@@ -1582,6 +1582,7 @@ class Plugin(indigo.PluginBase):
                     error_dict["showAlertText"] = error_message
                 else:
                     values_dict["supportsTemperatureReporting"] = True
+                    values_dict["NumTemperatureInputs"] = 1
                     values_dict["SupportsSensorValue"] = True
 
             # ============================ Process Any Errors =============================
