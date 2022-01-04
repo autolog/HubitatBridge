@@ -668,6 +668,8 @@ class ThreadHubHandler(threading.Thread):
                 for dev_id in self.globals[HE_HUBS][self.hubitat_hub_name][HE_DEVICES][hubitat_device_name][HE_LINKED_INDIGO_DEVICES]:
                     dev = indigo.devices[dev_id]
                     if dev.pluginProps.get("uspOnOff", False):
+                        if len(topics) != 4:
+                            return
                         if payload not in ["on", "off", "true", "false"]:
                             return
                         if payload == "on" or payload == "true":
