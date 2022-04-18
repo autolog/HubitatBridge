@@ -22,7 +22,7 @@ Support is also included for Tasmota plugs.
 5. Create Hubitat Bridge devices to reflect Hubitat devices published by the MQTT App on the Hubitat
 6. Optionally, create a Hubitat Bridge > Indigo Export device to publish Indigo devices to Hubitat, so that they can be discovered by the MQTT App in Hubitat
 
-Note: The plugin requires the Python Cryptography package. Enter 'pip3 install cryptography' in a terminal session to install it and then relaod the plugin.
+Note: The plugin requires the Python Cryptography package. Enter 'pip3 install cryptography' in a terminal session to install it and then reload the plugin.
 
 
-**PluginID**: com.autologplugin.indigoplugin.lifxcontroller
+**PluginID**: com.autologplugin.indigoplugin.hubitat
