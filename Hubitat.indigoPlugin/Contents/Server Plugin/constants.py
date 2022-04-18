@@ -9,16 +9,16 @@
 try:
     # noinspection PyUnresolvedReferences
     import indigo
-except ImportError, e:
+except ImportError:
     pass
 
 
-DEVICES = 0
-MQTT_CLIENT = 1
-MQTT_CLIENT_ID = 2
-NODE_LIST = 3
-NODES_TEMP = 4
-PAYLOAD = "$payload"
+LOCK_MQTT = 0
+LOCK_HE_LINKED_INDIGO_DEVICES = 1
+QUEUES = 2
+LOCALIP = 3
+LOCALMAC = 4
+COLOR_DEBUG = 5
 
 HE_BATTERY = 10
 HE_CONTACT = 11
@@ -28,14 +28,12 @@ HE_DEVICE_STATES = 14
 HE_HUBS = 15
 HE_HUB_EVENT = 16
 HE_HUB_INDIGO_DEVICE_ID = 17
-HE_HUB_MQTT_BROKER_IP = 18
-HE_HUB_MQTT_BROKER_PORT = 19
-HE_HUB_MQTT_CLIENT = 20
-HE_HUB_MQTT_CLIENT_ID = 21
-HE_HUB_MQTT_INITIALISED = 22
-HE_HUB_MQTT_MESSAGE_SEQUENCE = 23
-HE_HUB_MQTT_TOPIC = 24
-HE_HUB_ROOT_TOPIC = u"homie"
+# HE_HUB_MQTT_BROKER_IP = 18
+# HE_HUB_MQTT_BROKER_PORT = 19
+# HE_HUB_MQTT_CLIENT = 20
+# HE_HUB_MQTT_CLIENT_ID = 21
+# HE_HUB_MQTT_MESSAGE_SEQUENCE = 23
+#HE_HUB_MQTT_TOPIC = 24
 HE_HUB_THREAD = 25
 HE_HUMIDITY = 26
 HE_INDIGO_DEVICE_ID = 27
@@ -51,6 +49,37 @@ HE_STATE_DIM = 36
 HE_STATE_VALVE_LEVEL = 37
 HE_TEMPERATURE = 38
 HE_INDIGO_HUB_ID = 39
+
+# HE_VIRTUAL_DEVICES = 40
+# HE_VRTUAL_DEVICE_TYPE = 41
+# HE_VIRTUAL_DEVICE_RGB_LIGHT = 42
+
+EXPORT = 43
+AVAILABLE = 44
+SELECTED = 45
+EXPORT_NAME = 46
+EXPORT_TYPE = 47
+EXPORT_MQTT_FILTERS = 48
+EXPORT_ROOT_TOPIC_ID = 49
+ENABLED = 50
+EXPORT_ROOT_TOPIC_DEFAULT_NAME = "Indigo One"
+EXPORT_EVENT = 51
+EXPORT_THREAD = 52
+EXPORT_FILTERS = 53
+EXPORT_TOPIC_PAYLOAD_ERROR = 54
+EXPORT_TOPIC_PROCESSED = 55
+EXPORT_TOPIC_IGNORED = 56
+EXPORT_DEVICES = 57
+STORED_COLOR_MODE = 58
+
+HE_EXPORT_DEVICE_TYPE_ALL = 0
+HE_EXPORT_DEVICE_TYPE_DIMMER = 1
+HE_EXPORT_DEVICE_TYPE_RELAY = 2
+HE_EXPORT_DEVICE_TYPE_SENSOR = 3
+HE_EXPORT_DEVICE_TYPE_THERMOSTAT = 4
+HE_EXPORT_DEVICE_TYPE_SPRINKLER = 5
+HE_EXPORT_DEVICE_TYPE_DEVICE = 6
+HE_EXPORT_DEVICE_TYPE_OTHER = 99
 
 TASMOTA = 100
 TASMOTA_SUPPORT = 101
@@ -99,6 +128,36 @@ TASMOTA_PAYLOAD_ENERGY_YESTERDAY = 221
 TASMOTA_DISCOVERY_DETAILS = 222
 TASMOTA_QUEUE = 223
 
+MQTT = 500
+MQTT_CLIENT_ID = 501
+MQTT_IP = 502
+MQTT_PORT = 503
+MQTT_USERNAME = 504
+MQTT_PASSWORD = 505
+# MQTT_ENCRYPTION_KEY = 519  # Defned below in number sequence
+MQTT_ENCRYPTION_KEY_PYTHON_2 = "indigo_to_hubitat"
+MQTT_ENCRYPTION_PASSWORD_PYTHON_3 = b"indigo_to_hubitat"
+MQTT_ROOT_TOPIC = u"homie"
+MQTT_EVENT = 506
+MQTT_THREAD = 507
+MQTT_CLIENT =508
+MQTT_CONNECTION_INITIALISED = 509
+MQTT_HUB_QUEUE = 510
+MQTT_EXPORT_QUEUE = 511
+MQTT_TASMOTA_QUEUE = 512
+MQTT_SUBSCRIBED_TOPICS = 513
+MQTT_PROCESS_COMMAND_HANDLE_TOPICS = 514
+MQTT_PROCESS_COMMAND_HANDLE_STOP_THREAD = 515
+MQTT_CONNECTED = 516
+MQTT_CLIENT_PREFIX = 517
+MQTT_BROKERS = 518
+MQTT_ENCRYPTION_KEY = 519
+
+MQTT_SUBSCRIBE_TO_HOMIE = 520
+MQTT_SUBSCRIBE_TO_TASMOTA = 521
+MQTT_PUBLISH_TO_HOMIE = 522
+MQTT_PUBLISH_TO_TASMOTA = 523
+
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES = dict()
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["acceleration"] = ["humiditySensor", "illuminanceSensor", "motionSensor", "multiSensor"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["battery"] = ["button", "contactSensor", "humiditySensor", "illuminanceSensor", "motionSensor", "multiSensor", "temperatureSensor", "thermostat"]
@@ -113,12 +172,13 @@ HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["humidity"] = ["humiditySensor", "illumi
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["illuminance"] = ["humiditySensor", "illuminanceSensor", "motionSensor", "multiSensor", "temperatureSensor"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["mode"] = ["thermostat"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["motion"] = ["humiditySensor", "illuminanceSensor", "motionSensor", "multiSensor", "temperatureSensor"]
-HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["onoff"] = ["outlet", "dimmer", "thermostat"]
+HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["onoff"] = ["blind", "dimmer", "outlet", "thermostat"]
+HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["position"] = ["blind"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["power"] = ["outlet"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["presence"] = ["button", "contactSensor", "motionSensor", "multiSensor", "outlet", "temperatureSensor"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["presence-sensor"] = ["button", "contactSensor", "motionSensor", "multiSensor", "outlet", "temperatureSensor"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["pressure"] = ["multiSensor", "temperatureSensor"]
-HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["state"] = ["thermostat"]
+HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["state"] = ["blind", "thermostat"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["temperature"] = ["humiditySensor", "illuminanceSensor", "motionSensor", "multiSensor", "temperatureSensor", "thermostat"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["thermostat-setpoint"] = ["thermostat"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["voltage"] = ["button", "contactSensor", "motionSensor", "outlet", "temperatureSensor"]
@@ -128,6 +188,7 @@ HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["refresh"] = ["outlet", "thermostat"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES = dict()
 # HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["hubitatElevationHub"] = ["hsm"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["button"] = ["button"]
+HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["blind"] = ["position"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["contactSensor"] = ["contact"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["dimmer"] = ["dim"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["humiditySensor"] = ["humidity", "measure-humidity"]
@@ -185,6 +246,7 @@ INDIGO_SUB_TYPE_INFO["hsmSensorSecondary"] = ["uspHsmIndigo", [indigo.kDeviceSub
 
 INDIGO_PRIMARY_DEVICE_INFO = dict()
 INDIGO_PRIMARY_DEVICE_INFO["button"] = [indigo.kRelayDeviceSubType.PlugIn, "Button"]
+INDIGO_PRIMARY_DEVICE_INFO["blind"] = [indigo.kDimmerDeviceSubType.Dimmer, "Blind"]
 INDIGO_PRIMARY_DEVICE_INFO["contactSensor"] = [indigo.kSensorDeviceSubType.DoorWindow, "Contact"]
 INDIGO_PRIMARY_DEVICE_INFO["dimmer"] = [indigo.kDimmerDeviceSubType.Dimmer, "Dimmer"]
 INDIGO_PRIMARY_DEVICE_INFO["humidity"] = [indigo.kSensorDeviceSubType.Humidity, "Humidity"]

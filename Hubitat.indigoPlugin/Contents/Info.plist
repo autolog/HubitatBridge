@@ -3,11 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>PluginVersion</key>
-	<string>0.5.14</string>
+    <string>2022.0.0</string>
 	<key>ServerApiVersion</key>
-	<string>2.5</string>
+	<string>3.0</string>
 	<key>IwsApiVersion</key>
 	<string>1.0.0</string>
+	<key>LoadPriority</key>
+    <integer>104</integer>
 	<key>CFBundleDisplayName</key>
 	<string>Hubitat Bridge</string>
 	<key>CFBundleIdentifier</key>

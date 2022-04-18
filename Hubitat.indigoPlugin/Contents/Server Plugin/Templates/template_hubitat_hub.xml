@@ -12,30 +12,38 @@
         <Label>Hubitat Elevation (HE) Name:</Label>
     </Field>
     <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
-        <Label>^ Must be the Hub Name as recorded in the THE HE MQTT Broker Settings.</Label>
+        <Label>^ Must be the Hub Name as recorded in the Hubitat Eleveation MQTT App > MQTT Broker Settings.</Label>
     </Field>
     <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
-    <Field id="mqtt_broker_ip" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
-        <Label>MQTT Broker IP Address:</Label>
-    </Field>
-    <Field id="help-2" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
-        <Label>^ Must be the MQTT Broker IP Address as recorded in the THE HE MQTT Broker Settings.</Label>
+
+    <Field id="separator-1" type="separator" alwaysUseInDialogHeightCalc="true"/>
+
+    <Field id="header-2" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>MQTT BROKERS</Label>
     </Field>
     <Field id="space-3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
-    <Field id="mqtt_broker_port" type="textfield"  defaultValue="1883" alwaysUseInDialogHeightCalc="true">
-        <Label>MQTT Broker Port Address:</Label>
+    <Field id="mqttBrokers" type="list"  default="0" alwaysUseInDialogHeightCalc="true"
+            rows="4">
+        <Label>MQTT Broker Devices:</Label>
+        <List class="indigo.devices" filter="self.mqttBroker" dynamicReload="true"/>
     </Field>
-    <Field id="help-3" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
-        <Label>^ Must be the MQTT Broker Port Address as recorded in the THE HE MQTT Broker Settings.</Label>
+    <Field id="help-2" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Select the MQTT Broker(s) you want to publish to.</Label>
     </Field>
-    <Field id="space-4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
 
-    <Field id="separator-T1" type="separator" alwaysUseInDialogHeightCalc="true"/>
 
-<!-- Hubitat Elevation Properties   -->
+    <!-- Hubitat Elevation Properties   -->
     <Field id="hubitatPropertyHsm" type="checkbox" defaultValue="false" hidden="true" />
 
 <!-- User Selectable Properties - Visibility set dependant on Hubitat Properties enabled  -->
+
+    <Field id="space-4" type="label" alwaysUseInDialogHeightCalc="true" visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"><Label/></Field>
+
+    <Field id="separator-2" type="separator" alwaysUseInDialogHeightCalc="true" visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"/>
+
+    <Field id="header-3" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green" visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true">
+        <Label>Hubitat Safety Monitor</Label>
+    </Field>
 
     <!-- HSM -->
     <Field id="space-header-uspHsm" type="label"
@@ -60,9 +68,9 @@
     <Field id="space-uspHsm" type="label"
            visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"><Label/></Field>
     <Field id="separator-uspHsm" type="separator" alwaysUseInDialogHeightCalc="true"
-           visibleBindingId="hubitatPropertyHsm" visibleBindingValue="true"/>
+           visibleBindingId="uspHsm" visibleBindingValue="true"/>
 
-<!-- User Selectable Broadcast Logging - Visibility set dependant on User Selectable Properties enabled  -->
+<!-- User Selectable Broadcast Logging - Visibility that is set is dependant on whether User Selectable Properties enabled  -->
 
 <!--    <Field id="separator-3" type="separator" alwaysUseInDialogHeightCalc="true"/>-->
     <Field id="header-logging" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green"

@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+
+<Template>
+    <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
+
+<!-- MQTT Client Configuration   -->
+	<Field id="header-1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>MQTT BROKER CONNECTION DETAILS</Label>
+    </Field>
+    <Field id="space-1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqttClientPrefix" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT CLIENT PREFIX:</Label>
+    </Field>
+    <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be a unique prefix on the MQTT Broker being connected to. The plugin appends '-Dnnnnnn' where  nnnnnn is the device Id of this device.</Label>
+    </Field>
+    <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqtt_broker_ip" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Broker IP Address:</Label>
+    </Field>
+    <Field id="help-2" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be the MQTT Broker IP Address as recorded in the THE HE MQTT Broker Settings.</Label>
+    </Field>
+    <Field id="space-3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqtt_broker_port" type="textfield"  defaultValue="1883" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Broker Port Address:</Label>
+    </Field>
+    <Field id="help-3" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be the MQTT Broker Port Address as recorded in the THE HE MQTT Broker Settings.</Label>
+    </Field>
+
+    <Field id="space-4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqtt_username" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Username:</Label>
+    </Field>
+    <Field id="help-4" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Must be the username required to access the MQTT Broker. Leave empty if not used.</Label>
+    </Field>
+
+    <Field id="space-5" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqtt_password" type="textfield" secure="false" defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Password:</Label>
+    </Field>
+    <Field id="mqtt_password_encryption_key" type="textfield" hidden="true" defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Password Encryption Key:</Label>
+    </Field>
+    <Field id="mqtt_password_is_encoded" type="checkbox" hidden="true" defaultValue="false" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Password Is Encoded:</Label>
+    </Field>
+    <Field id="help-5" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Password required to access the MQTT Broker. Leave empty if not used.</Label>
+    </Field>
+
+    <Field id="space-6" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+	<Field id="header-2" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>MQTT PUBLICATIONS:</Label>
+    </Field>
+    <Field id="space-7" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="mqtt_publish_to_homie" type="checkbox" defaultValue="true">
+        <Label>Homie:</Label>
+        <Description>Publish to homie [Hubitat]</Description>
+    </Field>
+    <Field id="mqtt_publish_to_tasmota" type="checkbox" defaultValue="false">
+        <Label>Tasmota:</Label>
+        <Description>Publish to Tasmota [Outlets]</Description>
+    </Field>
+    <Field id="mqtt_publish_to_core" type="checkbox" defaultValue="false" readonly="YES">
+        <Label>Core:</Label>
+        <Description>Publish to CORE</Description>
+    </Field>
+
+    <Field id="space-8" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+	<Field id="header-3" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>MQTT SUBSCRIPTIONS:</Label>
+    </Field>
+    <Field id="space-9" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="mqtt_subscribe_to_homie" type="checkbox" defaultValue="true">
+        <Label>Homie:</Label>
+        <Description>Subscribe to homie [Hubitat]</Description>
+    </Field>
+    <Field id="mqtt_subscribe_to_tasmota" type="checkbox" defaultValue="false">
+        <Label>Tasmota:</Label>
+        <Description>Subscribe to Tasmota [Outlets]</Description>
+    </Field>
+    <Field id="mqtt_subscribe_to_core" type="checkbox" defaultValue="false" readonly="YES">
+        <Label>Core:</Label>
+        <Description>Subscribe to Core Outlets</Description>
+    </Field>
+    <Field id="space-10" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+</Template>

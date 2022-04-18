@@ -21,6 +21,7 @@
     <Field id="hubitatPropertyIlluminance" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyMotion" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyOnOff" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyPosition" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyPower" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyPresence" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyPressure" type="checkbox" defaultValue="false" hidden="true" />
@@ -165,6 +166,54 @@
            visibleBindingId="hubitatPropertyContact" visibleBindingValue="true"><Label/></Field>
     <Field id="separator-uspContact" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="hubitatPropertyContact" visibleBindingValue="true"/>
+
+        <!-- Position -->
+    <Field id="space-header-uspPosition" type="label"
+           visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspPosition" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true">
+        <Label>Position</Label>
+    </Field>
+    <Field id="uspPosition" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true">
+        <Label>Position:</Label>
+        <Description>Associated with Hubitat 'position' Property</Description>
+    </Field>
+
+    <Field id="uspPositionIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspPositionIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspPosition" visibleBindingValue="true" enabledBindingId="uspPositionIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="Blind" method="listDeviceStateMenuOptions"/>
+    </Field>
+    <Field id="space-uspPosition" type="label"
+           visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspPosition" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true"/>
+
+        <!-- State -->
+    <Field id="space-header-uspState" type="label"
+           visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspState" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true">
+        <Label>State</Label>
+    </Field>
+    <Field id="uspState" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true">
+        <Label>State:</Label>
+        <Description>Associated with Hubitat 'position' Property</Description>
+    </Field>
+
+    <Field id="uspStateIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspStateIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspState" visibleBindingValue="true" enabledBindingId="uspStateIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="Blind" method="listDeviceStateMenuOptions"/>
+    </Field>
+    <Field id="space-uspState" type="label"
+           visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspState" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyPosition" visibleBindingValue="true"/>
 
     <!-- Dimmer -->
     <Field id="space-header-uspDimmer" type="label"
@@ -544,8 +593,10 @@
     </Field>
     <Field id="space-uspTemperature" type="label"
            visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"><Label/></Field>
-    <Field id="separator-uspTemperature" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"/>
+
+    <Field id="separator-uspTemperature" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true"/>
 
     <!-- Setpoint -->
     <Field id="space-header-uspSetpoint" type="label"
@@ -646,7 +697,7 @@
     <Field id="separator-uspVoltage" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true"/>
 
-<!-- User Selectable Broadcast Logging - Visibility set dependant on User Selectable Properties enabled  -->
+<!-- User Selectable Broadcast Logging - Visibility that is set is dependant on whether User Selectable Properties enabled  -->
 
 <!--    <Field id="separator-3" type="separator" alwaysUseInDialogHeightCalc="true"/>-->
     <Field id="header-logging" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
@@ -676,6 +727,23 @@
     </Field>
     <Field id="space-hideContactBroadcast" type="label"
            visibleBindingId="uspContact" visibleBindingValue="true"><Label/></Field>
+
+    <!-- Position -->
+    <Field id="hidePositionBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspPosition" visibleBindingValue="true">
+        <Description>Hide position message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hidePositionBroadcast" type="label"
+           visibleBindingId="uspPosition" visibleBindingValue="true"><Label/></Field>
+
+    <!--  State -->
+    <Field id="hideStateBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspState" visibleBindingValue="true">
+        <Description>Hide state message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideStateBroadcast" type="label"
+           visibleBindingId="uspState" visibleBindingValue="true"><Label/></Field>
+
 
     <!-- Dimmer -->
     <Field id="hideDimmerBroadcast" type="checkbox" defaultValue="false"

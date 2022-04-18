@@ -7,14 +7,21 @@
 try:
     # noinspection PyUnresolvedReferences
     import indigo
-except ImportError, e:
+except ImportError:
     pass
 
 import json
 import logging
-import paho.mqtt.client as mqtt
+try:
+    # Python 3
+    import queue
+except ImportError:
+    # Python 2
+    import Queue as queue
+
 import sys
 import threading
+import traceback
 import time
 
 from constants import *
@@ -32,163 +39,59 @@ class ThreadTasmotaHandler(threading.Thread):
 
             self.globals = pluginGlobals
 
-            self.tasmota_id = tasmota_id
-
             self.tasmotaHandlerLogger = logging.getLogger("Plugin.TASMOTA")
-            self.tasmotaHandlerLogger.debug(u"Debugging Tasmota Handler Thread")
 
             self.threadStop = event
 
-            self.bad_disconnection = False
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
-            self.mqtt_client = self.globals[TASMOTA][TASMOTA_MQTT_CLIENT]
-            self.mqtt_message_sequence = 0
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method '__init__'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+    def exception_handler(self, exception_error_message, log_failing_statement):
+        filename, line_number, method, statement = traceback.extract_tb(sys.exc_info()[2])[-1]  # noqa [Ignore duplicate code warning]
+        module = filename.split('/')
+        log_message = f"'{exception_error_message}' in module '{module[-1]}', method '{method}'"
+        if log_failing_statement:
+            log_message = log_message + f"\n   Failing statement [line {line_number}]: '{statement}'"
+        else:
+            log_message = log_message + f" at line {line_number}"
+        self.tasmotaHandlerLogger.error(log_message)
 
     def run(self):
         try:
-            # time.sleep(2.0)  # Allow time for Indigo devices to start
-            # Initialise routine on thread start
-            self.tasmotaHandlerLogger.debug(u"Tasmota Handler Thread initialised")
+            while not self.threadStop.is_set():
+                try:
+                    mqtt_message_sequence, mqtt_process_command, mqtt_topics, mqtt_topics_list, mqtt_payload = self.globals[QUEUES][MQTT_TASMOTA_QUEUE].get(True, 5)
 
-            self.mqtt_client = mqtt.Client(client_id=self.globals[TASMOTA][TASMOTA_MQTT_CLIENT_ID],
-                                           clean_session=True,
-                                           userdata=None,
-                                           protocol=mqtt.MQTTv31)
-            self.mqtt_client.on_connect = self.on_connect
-            self.mqtt_client.on_disconnect = self.on_disconnect
-            self.mqtt_client.on_subscribe = self.on_subscribe
-            self.mqtt_client.on_publish = self.on_publish
-            for tasmota_subscription in self.globals[TASMOTA][TASMOTA_MQTT_TOPICS]:
-                self.mqtt_client.message_callback_add(tasmota_subscription, self.handle_message)
-            mqtt_connected = False
-            try:
-                self.mqtt_client.connect(host=self.globals[TASMOTA][TASMOTA_MQTT_BROKER_IP],
-                                         port=self.globals[TASMOTA][TASMOTA_MQTT_BROKER_PORT],
-                                         keepalive=60,
-                                         bind_address="")
-                mqtt_connected = True
-            except Exception as err:
-                self.tasmotaHandlerLogger.error(u"Tasmota Handler is unable to connect to MQTT. Is it running? Connection error reported as '{0}'".format(err))
+                    if mqtt_process_command == MQTT_PROCESS_COMMAND_HANDLE_TOPICS:
+                        self.handle_topics(mqtt_topics, mqtt_topics_list, mqtt_payload)
 
-            if mqtt_connected:
-
-                self.globals[TASMOTA][TASMOTA_MQTT_CLIENT] = self.mqtt_client
-
-                self.tasmotaHandlerLogger.debug(u"Autolog Tasmota now started")
-                self.mqtt_client.loop_start()
-
-                while not self.threadStop.is_set():
-                    try:
-                        time.sleep(2)
-                    except self.threadStop:
-                        pass  # Optionally catch the StopThread exception and do any needed cleanup.
-                        self.mqtt_client.loop_stop()
-                        self.globals[TASMOTA][TASMOTA_MQTT_INITIALISED] = False
+                except queue.Empty:
+                    pass
+                except Exception as exception_error:
+                    self.exception_handler(exception_error, True)  # Log error and display failing statement
             else:
                 pass
                 # TODO: At this point, queue a recovery for n seconds time
-                # TODO: In the meanwhile, just disable and then enable the Indigo Tasmota device
+                # TODO: In the meanwhile, just disable and then enable the Indigo Hubitat Elevation Hub device
 
-            self.tasmotaHandlerLogger.debug(u"Tasmota Handler Thread close-down commencing.")
+            self.tasmotaHandlerLogger.debug("Tasmota Handler Thread close-down commencing.")
 
-            self.handle_quit()
-            
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'run'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
-    def on_publish(self, client, userdata, mid):  # noqa [parameter value is not used]
+    def handle_topics(self, topics, topics_list, payload):
         try:
-            pass
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_publish'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
-
-    def on_connect(self, client, userdata, flags, rc):  # noqa [parameter value is not used]
-        try:
-            indigo.devices[self.tasmota_id].updateStateOnServer(key='status', value="Connected")
-            indigo.devices[self.tasmota_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
-
-            for tasmota_subscription in self.globals[TASMOTA][TASMOTA_MQTT_TOPICS]:
-                self.mqtt_client.subscribe(tasmota_subscription, qos=1)
-            # self.tasmotaHandlerLogger.info(u"MQTT subscription(s) to Tasmota devices is initialized")
-
-            self.globals[TASMOTA][TASMOTA_MQTT_INITIALISED] = True
-
-            if self.bad_disconnection:
-                self.bad_disconnection = False
-                self.tasmotaHandlerLogger.info(u"'{0}' reconnected to MQTT Broker.".format(indigo.devices[self.tasmota_id].name))
-
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_connect'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
-
-    def on_disconnect(self, client, userdata, rc):  # noqa [parameter value is not used]
-        try:
-            if rc != 0:
-                self.tasmotaHandlerLogger.warning(u"'{0}' encountered an unexpected disconnection from MQTT Broker [Code {1}]. Retrying connection ...".format(indigo.devices[self.tasmota_id].name, rc))
-                self.bad_disconnection = True
-            else:
-                self.tasmotaHandlerLogger.info(u"MQTT subscription to Tasmota ended")
-                self.mqtt_client.loop_stop()
-            try:
-                indigo.devices[self.tasmota_id].updateStateOnServer(key='status', value="Disconnected")
-                indigo.devices[self.tasmota_id].updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
-            except KeyError:  # Indigo device may have been already deleted
-                pass
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_disconnect'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
-
-    def handle_quit(self):
-        try:
-            self.mqtt_client.disconnect()
-            self.mqtt_client.loop_stop()
-            self.tasmotaHandlerLogger.info(u"Autolog Tasmota disconnected from MQTT")
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'handle_quit'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
-
-    def on_subscribe(self, client, userdata, mid, granted_qos):  # noqa [parameter value is not used]
-        try:
-            pass
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'on_subscribe'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
-
-    def handle_message(self, client, userdata, msg):  # noqa [parameter value is not used]
-        try:
-            # self.mqtt_message_sequence += 1
-            # mqtt_message_sequence = '{0}'.format(self.mqtt_message_sequence)
-
-            topics_list = msg.topic.split("/")  # noqa [Duplicated code fragment!]
-            payload = str(msg.payload)
-            # qos = msg.qos
-
-            indigo.devices[self.tasmota_id].updateStateOnServer(key='lastTopic', value=msg.topic)
-            indigo.devices[self.tasmota_id].updateStateOnServer(key='lastPayload', value=msg.payload)
-
-            # self.tasmotaHandlerLogger.warning(u"Tasmota Processing Topic = '{0}', Payload  = '{1}'".format(msg.topic, payload))
-
-            if len(topics_list) == 0:
-                return
-
-            if len(topics_list) == 1:
-                return
+            # Note that there are a minimum of three topic entries in the topics_list
 
             if topics_list[0] == TASMOTA_ROOT_TOPIC_STAT:
-                self.handle_message_stat(msg.topic, topics_list, payload)
+                self.handle_message_stat(topics, topics_list, payload)
             elif topics_list[0] == TASMOTA_ROOT_TOPIC_TELE:
-                self.handle_message_tele(msg.topic, topics_list, payload)
+                self.handle_message_tele(topics, topics_list, payload)
             elif topics_list[0] == TASMOTA_ROOT_TOPIC_TASMOTA:
-                self.handle_message_discovery(msg.topic, topics_list, payload)
+                self.handle_message_discovery(topics, topics_list, payload)
 
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'handle_message'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def handle_message_discovery(self, msg_topic, topics_list, payload):
         try:
@@ -198,8 +101,8 @@ class ThreadTasmotaHandler(threading.Thread):
             if topics_list[1] != TASMOTA_ROOT_TOPIC_DISCOVERY:
                 return
 
-            if len(topics_list[2]) != 12:
-                return
+            # if len(topics_list[2]) != 12:
+            #     return
 
             try:
                 int(topics_list[2], 16)  # Check for hexadecimal
@@ -207,6 +110,17 @@ class ThreadTasmotaHandler(threading.Thread):
                 return
 
             tasmota_key = topics_list[2][6:]
+
+            # if tasmota_key not in self.globals[TASMOTA][MQTT_BROKERS]:
+            #     return
+            # subscribed = False
+            # mqtt_client_device_id = self.globals[TASMOTA][MQTT_BROKERS][tasmota_key]  # TODO: Not a list for Tasmota - just one broker
+            # if mqtt_client_device_id != 0:
+            #     if self.globals[MQTT][mqtt_client_device_id][MQTT_CONNECTED]:
+            #         if self.globals[MQTT][mqtt_client_device_id][MQTT_SUBSCRIBE_TO_TASMOTA]:
+            #             subscribed = True
+            # if not subscribed:
+            #     return
 
             self.mqtt_filter_log_processing(tasmota_key, msg_topic, payload)  # noqa [Duplicated code fragment!]
 
@@ -231,9 +145,9 @@ class ThreadTasmotaHandler(threading.Thread):
             if topics_list[3] == "config":
                 try:
                     payload_data = json.loads(payload)
-                    self.tasmotaHandlerLogger.debug(u'Received [Payload Data]: \'{0}\''.format(payload_data))
+                    self.tasmotaHandlerLogger.debug(f'Received [Payload Data]: \'{payload_data}\'')
                 except ValueError:
-                    self.tasmotaHandlerLogger.warning(u'Received [JSON Payload Data] could not be decoded: \'{0}\''.format(payload))
+                    self.tasmotaHandlerLogger.warning(f'Received [JSON Payload Data] could not be decoded: \'{payload}\'')
                     return
 
                 if "sw" in payload_data:
@@ -267,37 +181,36 @@ class ThreadTasmotaHandler(threading.Thread):
 
                             if dev.deviceTypeId == "tasmotaOutlet":
                                 key_value_list = list()
-                                key_value_list.append({u"key": u"friendlyName", u"value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME]})
-                                key_value_list.append({u"key": u"ipAddress", u"value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_IP_ADDRESS]})
-                                key_value_list.append({u"key": u"macAddress", u"value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC]})
-                                key_value_list.append({u"key": u"model", u"value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL]})
+                                key_value_list.append({"key": "friendlyName", "value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FRIENDLY_NAME]})
+                                key_value_list.append({"key": "ipAddress", "value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_IP_ADDRESS]})
+                                key_value_list.append({"key": "macAddress", "value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MAC]})
+                                key_value_list.append({"key": "model", "value": self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_MODEL]})
                                 dev.updateStatesOnServer(key_value_list)
 
                                 props = dev.ownerProps
-                                firmware = props.get(u"version", "")
+                                firmware = props.get("version", "")
                                 if firmware != self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE]:
-                                    props[u"version"] = self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE]
+                                    props["version"] = self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_FIRMWARE]
                                     dev.replacePluginPropsOnServer(props)
 
             elif topics_list[3] == "sensors":
                 try:
                     payload_data = json.loads(payload)
-                    self.tasmotaHandlerLogger.debug(u'Received [Payload Data]: \'{0}\''.format(payload_data))
+                    self.tasmotaHandlerLogger.debug(f'Received [Payload Data]: \'{payload_data}\'')
                 except ValueError:
-                    self.tasmotaHandlerLogger.warning(u'Received [JSON Payload Data] could not be decoded: \'{0}\''.format(payload))
+                    self.tasmotaHandlerLogger.warning(f'Received [JSON Payload Data] could not be decoded: \'{payload}\'')
                     return
 
                 if "sn" in payload_data:
                     self.update_energy_states(tasmota_key, payload_data["sn"])
 
                 # Refresh Power State
-                topic = u"cmnd/tasmota_{0}/Status".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Status"
+                topic = f"cmnd/tasmota_{tasmota_key}/Status"  # e.g. "cmnd/tasmota_6E641A/Status"
                 topic_payload = "8"  # Show power usage
                 self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
 
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'handle_message_discovery'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def handle_message_stat(self, msg_topic, topics_list, payload):
         try:
@@ -312,6 +225,17 @@ class ThreadTasmotaHandler(threading.Thread):
 
             tasmota_key = topics_list[1][8:]
 
+            if tasmota_key not in self.globals[TASMOTA][MQTT_BROKERS]:
+                return
+            subscribed = False
+            mqtt_client_device_id = self.globals[TASMOTA][MQTT_BROKERS][tasmota_key]  # TODO: Not a list for Tasmota - just one broker
+            if mqtt_client_device_id != 0:
+                if self.globals[MQTT][mqtt_client_device_id][MQTT_CONNECTED]:
+                    if self.globals[MQTT][mqtt_client_device_id][MQTT_SUBSCRIBE_TO_TASMOTA]:
+                        subscribed = True
+            if not subscribed:
+                return
+
             self.mqtt_filter_log_processing(tasmota_key, msg_topic, payload)
 
             if len(topics_list) != 3:
@@ -325,7 +249,7 @@ class ThreadTasmotaHandler(threading.Thread):
                 else:
                     return
     
-                # self.tasmotaHandlerLogger.warning(u"Tasmota [STAT] Topic: {0}, payload: {1}".format(topics, payload))
+                # self.tasmotaHandlerLogger.warning(f"Tasmota [STAT] Topic: {topics}, payload: {payload}")
 
                 if TASMOTA_INDIGO_DEVICE_ID in self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key]:
                     if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_INDIGO_DEVICE_ID] != 0:
@@ -335,25 +259,25 @@ class ThreadTasmotaHandler(threading.Thread):
                             if dev.deviceTypeId == "tasmotaOutlet":
                                 key_value_list = list()
                                 if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_POWER]:
-                                    payload_ui = u"on"  # Force to On
+                                    payload_ui = "on"  # Force to On
                                     dev.updateStateOnServer(key="onOffState", value=True)
                                     dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOn)
                                 else:
-                                    payload_ui = u"off"  # Force to Off
+                                    payload_ui = "off"  # Force to Off
                                     dev.updateStateOnServer(key="onOffState", value=False)
                                     dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOff)
-                                key_value_list.append({u"key": u"lwt", u"value": u"Online"})
+                                key_value_list.append({"key": "lwt", "value": "Online"})
                                 dev.updateStatesOnServer(key_value_list)
 
                                 if not bool(dev.pluginProps.get("hidePowerBroadcast", False)):
                                     self.tasmotaHandlerLogger.info(
-                                        u"received \"{0}\" outlet state update: \"{1}\"".format(dev.name, payload_ui))
+                                        f"received \"{dev.name}\" outlet state update: \"{payload_ui}\"")
             elif topics_list[2] == "STATUS8":
                 try:
                     payload_data = json.loads(payload)
-                    self.tasmotaHandlerLogger.debug(u'Received [Payload Data]: \'{0}\''.format(payload_data))
+                    self.tasmotaHandlerLogger.debug(f'Received [Payload Data]: \'{payload_data}\'')
                 except ValueError:
-                    self.tasmotaHandlerLogger.warning(u'Received [JSON Payload Data] could not be decoded: \'{0}\''.format(payload))
+                    self.tasmotaHandlerLogger.warning(f'Received [JSON Payload Data] could not be decoded: \'{payload}\'')
                     return
 
                 if "StatusSNS" in payload_data:
@@ -362,20 +286,20 @@ class ThreadTasmotaHandler(threading.Thread):
             elif topics_list[2] == "RESULT":  # Result of Resetting Total
                 try:
                     payload_data = json.loads(payload)
-                    self.tasmotaHandlerLogger.debug(u'Received [Payload Data]: \'{0}\''.format(payload_data))
+                    self.tasmotaHandlerLogger.debug(f'Received [Payload Data]: \'{payload_data}\'')
                 except ValueError:
-                    self.tasmotaHandlerLogger.warning(u'Received [JSON Payload Data] could not be decoded: \'{0}\''.format(payload))
+                    self.tasmotaHandlerLogger.warning(f'Received [JSON Payload Data] could not be decoded: \'{payload}\'')
                     return
 
                 if "EnergyReset" in payload_data:
                     self.reset_energy_total(tasmota_key, payload_data["EnergyReset"])
 
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'handle_message_stat'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def handle_message_tele(self, msg_topic, topics_list, payload):
         try:
+            # self.tasmotaHandlerLogger.warning(f"TASMOTA [handle_message_tele]: Topic={msg_topic}, Payload={payload}")
             if topics_list[1][0:8] != "tasmota_":  # noqa [Duplicated code fragment!]
                 return
             if len(topics_list[1][8:]) != 6:
@@ -386,6 +310,18 @@ class ThreadTasmotaHandler(threading.Thread):
                 return
 
             tasmota_key = topics_list[1][8:]
+
+            subscribed = False
+            if tasmota_key not in self.globals[TASMOTA][MQTT_BROKERS]:
+                return
+            mqtt_client_device_id = self.globals[TASMOTA][MQTT_BROKERS][tasmota_key]  # TODO: Not a list for Tasmota - just one broker
+            if mqtt_client_device_id != 0:
+                if self.globals[MQTT][mqtt_client_device_id][MQTT_CONNECTED]:
+                    if self.globals[MQTT][mqtt_client_device_id][MQTT_SUBSCRIBE_TO_TASMOTA]:
+                        subscribed = True
+            if not subscribed:
+                return
+
             self.mqtt_filter_log_processing(tasmota_key, msg_topic, payload)
 
             self.update_tasmota_status(tasmota_key)  # noqa [Duplicated code fragment!]
@@ -424,12 +360,12 @@ class ThreadTasmotaHandler(threading.Thread):
                             key_value_list = list()
                             if dev.deviceTypeId == "tasmotaOutlet":
                                 if payload != "Online":
-                                    key_value_list.append({u"key": u"onOffState", u"value": False})
-                                    key_value_list.append({u"key": u"lwt", u"value": u"Offline"})
+                                    key_value_list.append({"key": "onOffState", "value": False})
+                                    key_value_list.append({"key": "lwt", "value": "Offline"})
                                     dev.updateStatesOnServer(key_value_list)
-                                    dev.setErrorStateOnServer(u"offline")
+                                    dev.setErrorStateOnServer("offline")
                                 else:
-                                    key_value_list.append({u"key": u"lwt", u"value": u"Online"})
+                                    key_value_list.append({"key": "lwt", "value": "Online"})
                                     dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOn)
                                     if dev.onState:
                                         dev.updateStateImageOnServer(indigo.kStateImageSel.PowerOn)
@@ -441,28 +377,27 @@ class ThreadTasmotaHandler(threading.Thread):
             elif topics_list[2] == "SENSOR":
                 try:
                     payload_data = json.loads(payload)
-                    self.tasmotaHandlerLogger.debug(u'Received [Payload Data]: \'{0}\''.format(payload_data))
+                    self.tasmotaHandlerLogger.debug(f'Received [Payload Data]: \'{payload_data}\'')
                 except ValueError:
-                    self.tasmotaHandlerLogger.warning(u'Received [JSON Payload Data] could not be decoded: \'{0}\''.format(payload))
+                    self.tasmotaHandlerLogger.warning(f'Received [JSON Payload Data] could not be decoded: \'{payload}\'')
                     return
 
                 self.update_energy_states(tasmota_key, payload_data)
 
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'handle_message_tele'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def mqtt_filter_log_processing(self, tasmota_key, msg_topic, payload):
         log_mqtt_msg = False  # Assume MQTT message should NOT be logged
         # Check if MQTT message filtering required
         if TASMOTA_MQTT_FILTERS in self.globals:
-            if len(self.globals[TASMOTA_MQTT_FILTERS]) > 0 and self.globals[TASMOTA_MQTT_FILTERS] != [u"-0-"]:
+            if len(self.globals[TASMOTA_MQTT_FILTERS]) > 0 and self.globals[TASMOTA_MQTT_FILTERS] != ["-0-"]:
                 # As entries exist in the filter list, only log MQTT message in Tasmota device in the filter list
-                if self.globals[TASMOTA_MQTT_FILTERS] == [u"-1-"] or tasmota_key in self.globals[TASMOTA_MQTT_FILTERS]:
+                if self.globals[TASMOTA_MQTT_FILTERS] == ["-1-"] or tasmota_key in self.globals[TASMOTA_MQTT_FILTERS]:
                     log_mqtt_msg = True
 
         if log_mqtt_msg:
-            self.tasmotaHandlerLogger.topic(u"Received from Tasmota: Topic='{0}', Payload='{1}'".format(msg_topic, payload))  # noqa [unresolved attribute reference]
+            self.tasmotaHandlerLogger.topic(f"Received from Tasmota: Topic='{msg_topic}', Payload='{payload.decode('utf-8')}'")  # noqa [unresolved attribute reference]
 
     def update_tasmota_status(self, tasmota_key):
         try:
@@ -471,37 +406,43 @@ class ThreadTasmotaHandler(threading.Thread):
             # dev_id = self.globals[TASMOTA][TASMOTA_QUEUE][tasmota_key]
             del self.globals[TASMOTA][TASMOTA_QUEUE][tasmota_key]
 
-            # self.tasmotaHandlerLogger.warning(u"Requesting status update for '{0}'".format(indigo.devices[dev_id].name))
+            # self.tasmotaHandlerLogger.warning(f"Requesting status update for '{indigo.devices[dev_id].name}'")
 
-            topic = u"cmnd/tasmota_{0}/Power".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Power"
-            topic_payload = u""  # No payload returns status
+            topic = f"cmnd/tasmota_{tasmota_key}/Power"  # e.g. "cmnd/tasmota_6E641A/Power"
+            topic_payload = ""  # No payload returns status
             self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
-            topic = u"cmnd/tasmota_{0}/Status".format(tasmota_key)  # e.g. "cmnd/tasmota_6E641A/Status"
+            topic = f"cmnd/tasmota_{tasmota_key}/Status"  # e.g. "cmnd/tasmota_6E641A/Status"
             topic_payload = "8"  # Show power usage
             self.publish_tasmota_topic(tasmota_key, topic, topic_payload)
 
-        except StandardError, err:
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'update_tasmota_status'. Line '{0}' has error='{1}'"
-                                            .format(sys.exc_traceback.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def publish_tasmota_topic(self, tasmota_key, topic, payload):
         try:
-            self.globals[TASMOTA][TASMOTA_MQTT_CLIENT].publish(topic, payload)
+            published = False
+            if tasmota_key not in self.globals[TASMOTA][MQTT_BROKERS]:
+                return
+            mqtt_client_device_id = self.globals[TASMOTA][MQTT_BROKERS][tasmota_key]  # TODO: Not a list for Tasmota - just one broker
+            if mqtt_client_device_id != 0:
+                if self.globals[MQTT][mqtt_client_device_id][MQTT_CONNECTED]:
+                    if self.globals[MQTT][mqtt_client_device_id][MQTT_PUBLISH_TO_HOMIE]:
+                        self.globals[MQTT][mqtt_client_device_id][MQTT_CLIENT].publish(topic, payload, 1, True)  # noqa [parameter value is not used] - n.b. QOS=1 Retain=True
+                        published = True
+            if published:
+                log_mqtt_msg = False  # Assume MQTT message should NOT be logged
+                # Check if MQTT message filtering required
+                if TASMOTA_MQTT_FILTERS in self.globals:
+                    if len(self.globals[TASMOTA_MQTT_FILTERS]) > 0 and self.globals[TASMOTA_MQTT_FILTERS] != ["-0-"]:
+                        # As entries exist in the filter list, only log MQTT message in Tasmota device in the filter list
+                        if self.globals[TASMOTA_MQTT_FILTERS] == ["-1-"] or tasmota_key in self.globals[TASMOTA_MQTT_FILTERS]:
+                            log_mqtt_msg = True
 
-            log_mqtt_msg = False  # Assume MQTT message should NOT be logged
-            # Check if MQTT message filtering required
-            if TASMOTA_MQTT_FILTERS in self.globals:
-                if len(self.globals[TASMOTA_MQTT_FILTERS]) > 0 and self.globals[TASMOTA_MQTT_FILTERS] != [u"-0-"]:
-                    # As entries exist in the filter list, only log MQTT message in Tasmota device in the filter list
-                    if self.globals[TASMOTA_MQTT_FILTERS] == [u"-1-"] or tasmota_key in self.globals[TASMOTA_MQTT_FILTERS]:
-                        log_mqtt_msg = True
+                if log_mqtt_msg:
+                    self.tasmotaHandlerLogger.topic(f">>> Published to Tasmota: Topic='{topic}', Payload='{payload.decode('utf-8')}'")  # noqa [unresolved attribute reference]
 
-            if log_mqtt_msg:
-                self.tasmotaHandlerLogger.topic(u">>> Published to Tasmota: Topic='{0}', Payload='{1}'".format(topic, payload))  # noqa [unresolved attribute reference]
-
-        except StandardError, err:
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'publish_tasmota_topic'. Line '{0}' has error='{1}'"
-                                            .format(sys.exc_traceback.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def reset_energy_total(self, tasmota_key, payload_data):
         try:
@@ -519,9 +460,8 @@ class ThreadTasmotaHandler(threading.Thread):
                                     key_value_list.append({"key": "accumEnergyTotal", "value": kwhReformatted, "uiValue": kwh_string})
                                     dev.updateStatesOnServer(key_value_list)
 
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'reset_energy_states'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def update_energy_states(self, tasmota_key, payload_data):
         try:
@@ -629,7 +569,7 @@ class ThreadTasmotaHandler(threading.Thread):
 
                                 # Update Indigo UI states: "accumEnergyTotal" and "curEnergyLevel"
 
-                                power_units_ui = u" {0}".format(dev.pluginProps.get("tasmotaPowerUnits", "Watts"))
+                                power_units_ui = f" {dev.pluginProps.get('tasmotaPowerUnits', 'Watts')}"
                                 try:
                                     power = float(self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_ENERGY_POWER])
                                 except ValueError:
@@ -652,19 +592,19 @@ class ThreadTasmotaHandler(threading.Thread):
                                         report_power_state = True
 
                                 # if power != previousPowerLevel:
-                                #     self.tasmotaHandlerLogger.warning(u"Tasmota Report Power State: Power={0}, Previous={1}, Level={2}, Min={3}, Max={4}"
-                                #                                       .format(power, previousPowerLevel, minimumPowerLevel, power_variance_minimum, power_variance_maximum))
+                                #     self.tasmotaHandlerLogger.warning(
+                                #         f"Tasmota Report Power State: Power={power}, Previous={previousPowerLevel}, Level={minimumPowerLevel}, Min={power_variance_minimum}, Max={power_variance_maximum}")
 
                                 decimal_places = int(dev.pluginProps.get("tasmotaPowerDecimalPlaces", 0))
                                 value, uiValue = self.processDecimalPlaces(power, decimal_places, power_units_ui, INDIGO_NO_SPACE_BEFORE_UNITS)
                                 key_value_list.append({"key": "curEnergyLevel", "value": value, "uiValue": uiValue})
                                 if report_power_state:
                                     if not bool(dev.pluginProps.get("hideTasmotaPowerBroadcast", False)):
-                                        self.tasmotaHandlerLogger.info(u"received \"{1}\" power update to {0}".format(uiValue, dev.name))
+                                        self.tasmotaHandlerLogger.info(f"received \"{dev.name}\" power update to {uiValue}")
 
                                 # Only update the Accumulated Energy Total if the new value isn't zero
                                 if self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_ENERGY_TOTAL] != 0.0:
-                                    total_units_ui = u" {0}".format(dev.pluginProps.get("tasmotaPowerAccumulatedUnits", "kWh"))
+                                    total_units_ui = f" {dev.pluginProps.get('tasmotaPowerAccumulatedUnits', 'kWh')}"
                                     total = self.globals[TASMOTA][TASMOTA_DEVICES][tasmota_key][TASMOTA_PAYLOAD_ENERGY_TOTAL]
                                     decimal_places = int(dev.pluginProps.get("tasmotaPowerAccumulatedDecimalPlaces", 3))
                                     value, uiValue = self.processDecimalPlaces(total, decimal_places, total_units_ui, INDIGO_NO_SPACE_BEFORE_UNITS)
@@ -672,22 +612,20 @@ class ThreadTasmotaHandler(threading.Thread):
 
                                 dev.updateStatesOnServer(key_value_list)
 
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'update_energy_states'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def processDecimalPlaces(self, field, decimal_places, units, space_before_units):
         try:
-            units_plus_optional_space = u" {0}".format(units) if space_before_units else u"{0}".format(units)  # noqa [Duplicated code fragment!]
+            units_plus_optional_space = f" {units}" if space_before_units else f"{units}"  # noqa [Duplicated code fragment!]
             if decimal_places == 0:
-                return int(field), u"{0}{1}".format(int(field), units_plus_optional_space)
+                return int(field), f"{int(field)}{units_plus_optional_space}"
             else:
                 value = round(field, decimal_places)
 
-                uiValue = u"{{0:.{0}f}}{1}".format(decimal_places, units_plus_optional_space).format(field)
+                uiValue = "{{0:.{0}f}}{1}".format(decimal_places, units_plus_optional_space).format(field)
 
                 return value, uiValue
 
-        except Exception as err:
-            trace_back = sys.exc_info()[2]
-            self.tasmotaHandlerLogger.error(u"Error detected in 'tasmotaHandler' method 'processDecimalPlaces'. Line '{0}' has error='{1}'".format(trace_back.tb_lineno, err))
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement

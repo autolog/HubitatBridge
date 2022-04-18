@@ -5,6 +5,16 @@
     <Field id="SupportsEnergyMeterCurPower" type="Checkbox" defaultValue="true"  hidden="true"/>
     <Field id="SupportsAccumEnergyTotal" type="Checkbox" defaultValue="true"  hidden="true"/>
 
+    <Field id="header-1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>MQTT CLIENT</Label>
+    </Field>
+    <Field id="space-1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqttBroker" type="menu"  default="0" alwaysUseInDialogHeightCalc="true">
+        <Label>MQTT Broker Device:</Label>
+        <List class="indigo.devices" filter="self.mqttBroker" dynamicReload="true"/>
+    </Field>
+    <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
     <Field id="header-T2" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
         <Label>TASMOTA DEVICE</Label>
     </Field>

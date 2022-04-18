@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<Template>
+    <SupportURL>https://forums.indigodomo.com/viewforum.php?f=353</SupportURL>
+
+    <Field id="header-1" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>Indigo Export to Hubitat</Label>
+    </Field>
+    <Field id="space-1" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="export_root_topic_id" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>Indigo Export Root Topic Id:</Label>
+    </Field>
+    <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true" fontSize="small">
+        <Label>^ Must be a unique root topic id that will be used for device discovery in the Hubitat Elevation MQTT App  e.g. indigo-1</Label>
+    </Field>
+     <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="indigo_name" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
+        <Label>Indigo Export Root Topic Name:</Label>
+    </Field>
+    <Field id="help-3" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true" fontSize="small">
+        <Label>^ Value for $name topic e.g. Indigo One</Label>
+    </Field>
+     <Field id="space-3" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="separator-1" type="separator" alwaysUseInDialogHeightCalc="true"/>
+
+    <Field id="header-2" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>MQTT BROKERS</Label>
+    </Field>
+    <Field id="space-4" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="mqttBrokers" type="list"  default="0" alwaysUseInDialogHeightCalc="true"
+            rows="4">
+        <Label>MQTT Broker Devices:</Label>
+        <List class="indigo.devices" filter="self.mqttBroker" dynamicReload="true"/>
+    </Field>
+    <Field id="help-4" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true" fontSize="small">
+        <Label>^ CMD-Select the MQTT Brokers you want this Indigo Export device to connect to.</Label>
+    </Field>
+
+    <Field id="space-5" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="separator-2" type="separator" alwaysUseInDialogHeightCalc="true"/>
+    <Field id="header-3" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
+        <Label>Export Indigo Devices</Label>
+    </Field>
+    <Field id="space-6" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field id="autoExport" type="checkbox" defaultValue="true">
+        <Label>Auto Export:</Label>
+        <Description>Export on Save or Plugin | Device Start.</Description>
+    </Field>
+    <Field id="help-5" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true" fontSize="small">
+        <Label>^ This will publish all the devices selected for export. To  manually publish the devices, turn on the Indigo Export device which will automatically turn off when the publishing is complete.</Label>
+    </Field>
+
+    <Field id="space-7" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+    <Field type="menu" id="availableIndigoDevicesFilter" defaultValue="0">
+        <Label>Filter Indigo Devices:</Label>
+        <List dynamicReload="true">
+            <Option value="0">All Devices</Option>
+            <Option value="1">Dimmer Devices</Option>
+            <Option value="2">Relay Devices</Option>
+            <Option value="3">Sensor Devices</Option>
+            <Option value="4">Thermostat Devices</Option>
+            <Option value="5">Sprinkler Devices</Option>
+            <Option value="6">Standard Devices</Option>
+            <Option value="99">Other Devices</Option>
+        </List>
+        <CallbackMethod>menuAvailableIndigoDevicesFilterChanged</CallbackMethod>
+    </Field>
+
+    <Field id="availableIndigoDevices" type="list"  default="0" alwaysUseInDialogHeightCalc="true"
+            rows="10">
+        <Label>Available Indigo Devices:</Label>
+        <List class="self" method="listExportAvailableIndigoDevices" dynamicReload="true"/>
+        <CallbackMethod>availableIndigoDevicesSelected</CallbackMethod>
+    </Field>
+    <Field id="space-8" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="addToExportIndigoDevices" type="button">
+<!--	    <Label>Export:</Label>-->
+	    <Title>Add Devices</Title>
+	    <CallbackMethod>addToExportIndigoDevices</CallbackMethod>
+    </Field>
+    <Field id="help-6" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true" fontSize="small">
+        <Label>^ CMD-Select the Indigo device(s) you want to export for Hubitat discovery and then click 'Add Devices' button above.</Label>
+    </Field>
+
+    <Field id="space-9" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field type="menu" id="exportIndigoDevicesFilter" defaultValue="0">
+        <Label>Filter Indigo Devices:</Label>
+        <List dynamicReload="true">
+            <Option value="0">All Devices</Option>
+            <Option value="1">Dimmer Devices</Option>
+            <Option value="2">Relay Devices</Option>
+            <Option value="3">Sensor Devices</Option>
+            <Option value="4">Thermostat Devices</Option>
+            <Option value="5">Sprinkler Devices</Option>
+            <Option value="6">Standard Devices</Option>
+            <Option value="99">Other Devices</Option>
+        </List>
+        <CallbackMethod>menuExportIndigoDevicesFilterChanged</CallbackMethod>
+    </Field>
+
+    <Field id="exportIndigoDevices" type="list"  default="0" alwaysUseInDialogHeightCalc="true"
+           readonly="YES" rows="10">
+        <Label>Indigo Devices to Export</Label>
+        <List class="self" method="listExportSelectedIndigoDevices" dynamicReload="true"/>
+        <CallbackMethod>exportIndigoDevicesSelected</CallbackMethod>
+    </Field>
+    <Field id="space-10" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+
+    <Field id="remooveFromExportIndigoDevices" type="button">
+<!--	    <Label>Export:</Label>-->
+	    <Title>Remove Devices</Title>
+	    <CallbackMethod>removeFromExportIndigoDevices</CallbackMethod>
+    </Field>
+    <Field id="help-7" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true" fontSize="small">
+        <Label>^ CMD-Select the Indigo device(s) you no longer want to export for Hubitat export and then click 'Remove Devices' button above.</Label>
+    </Field>
+
+    <Field id="space-11" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
+</Template>

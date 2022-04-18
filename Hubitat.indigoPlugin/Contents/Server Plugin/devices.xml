@@ -1,27 +1,12 @@
 <?xml version="1.0"?>
 <Devices>
     <!-- Hubitat Elevation Hub -->
-    <Device id="hubitatElevationHub"  type="custom">
-        <Name>Hubitat Elevation Hub [MQTT Client]</Name>
+    <Device id="mqttBroker"  type="custom">
+        <Name>MQTT Broker</Name>
         <ConfigUI>
-            <Template file="Templates/template_hubitat_mqtt.xml" />
+            <Template file="Templates/template_mqtt_broker.xml" />
 		</ConfigUI>
         <States>
-            <State id="heartbeat">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>MQTT Heartbeat changed</TriggerLabel>
-                <ControlPageLabel>MQTT Heartbeat</ControlPageLabel>
-            </State>
-            <State id="lastPayload">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Last Payload changed</TriggerLabel>
-                <ControlPageLabel>Last Payload</ControlPageLabel>
-            </State>
-            <State id="lastTopic">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Last Topic changed</TriggerLabel>
-                <ControlPageLabel>Last Topic</ControlPageLabel>
-            </State>
             <State id="status">
                 <ValueType>String</ValueType>
                 <TriggerLabel>Status changed</TriggerLabel>
@@ -31,12 +16,18 @@
         <UiDisplayStateId>status</UiDisplayStateId>
 	</Device>
 
-    <Device id="tasmota"  type="custom">
-        <Name>Tasmota [MQTT Client]</Name>
+    <!-- Hubitat Elevation Hub -->
+    <Device id="hubitatElevationHub"  type="custom">
+        <Name>Hubitat Elevation Hub</Name>
         <ConfigUI>
-            <Template file="Templates/template_tasmota_mqtt.xml" />
+            <Template file="Templates/template_hubitat_hub.xml" />
 		</ConfigUI>
         <States>
+            <State id="heartbeat">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>MQTT Heartbeat changed</TriggerLabel>
+                <ControlPageLabel>MQTT Heartbeat</ControlPageLabel>
+            </State>
             <State id="lastPayload">
                 <ValueType>String</ValueType>
                 <TriggerLabel>Last Payload changed</TriggerLabel>
@@ -177,6 +168,15 @@
     <!-- Dimmer -->
 	<Device id="dimmer" type="dimmer">
         <Name>Dimmer (Light)</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
+		</ConfigUI>
+	</Device>
+
+    <!-- Blind aka Roller Shutter -->
+	<Device id="blind" type="dimmer" subType="indigo.kDimmerDeviceSubType.Blind">
+        <Name>Dimmer (Blind / Shade)</Name>
         <ConfigUI>
             <Template file="Templates/template_hubitat.xml" />
             <Template file="Templates/template_hubitat_device_properties.xml" />
@@ -364,4 +364,35 @@
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
 	</Device>
+
+    <Device id="indigoExport"  type="relay" subType="indigo.kRelayDeviceSubType.Plugin">
+        <Name>Indigo Export</Name>
+        <ConfigUI>
+            <Template file="Templates/template_indigo_export.xml" />
+		</ConfigUI>
+        <States>
+            <State id="heartbeat">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>MQTT Heartbeat changed</TriggerLabel>
+                <ControlPageLabel>MQTT Heartbeat</ControlPageLabel>
+            </State>
+            <State id="lastPayload">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Payload changed</TriggerLabel>
+                <ControlPageLabel>Last Payload</ControlPageLabel>
+            </State>
+            <State id="lastTopic">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Topic changed</TriggerLabel>
+                <ControlPageLabel>Last Topic</ControlPageLabel>
+            </State>
+            <State id="status">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Status changed</TriggerLabel>
+                <ControlPageLabel>Status</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>status</UiDisplayStateId>
+	</Device>
+
 </Devices>
