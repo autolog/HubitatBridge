@@ -1063,7 +1063,7 @@ class ThreadHubHandler(threading.Thread):
                         log_mqtt_msg = True
 
             if log_mqtt_msg:
-                self.hubHandlerLogger.topic(f"Received from '{hub_name}': Topic='{topics}', Payload='{payload.decode('utf-8')}'")  # noqa [Unresolved attribute reference]
+                self.hubHandlerLogger.topic(f"Received from '{hub_name}': Topic='{topics}', Payload='{payload}'")  # noqa [Unresolved attribute reference]
 
         except Exception as exception_error:
             self.exception_handler(exception_error, True)  # Log error and display failing statement

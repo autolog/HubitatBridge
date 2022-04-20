@@ -70,10 +70,10 @@
 
 	<Field id="space-11" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
 
-    <Field id="mqttDiscoveryDeviceMessageFilter" type="list" alwaysUseInDialogHeightCalc="true" rows="10"
+    <Field id="mqttExportDeviceMessageFilter" type="list" alwaysUseInDialogHeightCalc="true" rows="10"
 		   default="-" >
         <Label>Filter:</Label>
-        <List class="self" method="mqttListDiscoveryDevices" dynamicReload="true"/>
+        <List class="self" method="mqttListExportDevices" dynamicReload="true"/>
     </Field>
     <Field id="space-12" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
 
