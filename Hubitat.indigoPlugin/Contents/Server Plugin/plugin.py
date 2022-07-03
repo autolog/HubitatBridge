@@ -98,7 +98,7 @@ class Plugin(indigo.PluginBase):
 
         logging.addLevelName(K_LOG_LEVEL_TOPIC, "topic")
 
-        def topic(self, message, *args, **kws):  # noqa [Shadoeing names from outer scope = self]
+        def topic(self, message, *args, **kws):  # noqa [Shadowing names from outer scope = self]
             # if self.isEnabledFor(K_LOG_LEVEL_TOPIC):
             # Yes, logger takes its '*args' as 'args'.
             self.log(K_LOG_LEVEL_TOPIC, message, *args, **kws)
@@ -132,23 +132,6 @@ class Plugin(indigo.PluginBase):
 
         self.logger = logging.getLogger("Plugin.Hubitat")
 
-        # Now logging is set up, output Initialising Message
-        startup_message_ui = "\n"  # Start with a line break
-        startup_message_ui += f"{' Initialising Hubitat Bridge Plugin Plugin ':={'^'}130}\n"
-        startup_message_ui += f"{'Plugin Name:':<31} {self.globals[K_PLUGIN_INFO][K_PLUGIN_DISPLAY_NAME]}\n"
-        startup_message_ui += f"{'Plugin Version:':<31} {self.globals[K_PLUGIN_INFO][K_PLUGIN_VERSION]}\n"
-        startup_message_ui += f"{'Plugin ID:':<31} {self.globals[K_PLUGIN_INFO][K_PLUGIN_ID]}\n"
-        startup_message_ui += f"{'Indigo Version:':<31} {indigo.server.version}\n"
-        startup_message_ui += f"{'Indigo License:':<31} {indigo.server.licenseStatus}\n"
-        startup_message_ui += f"{'Indigo API Version:':<31} {indigo.server.apiVersion}\n"
-        machine = platform.machine()
-        startup_message_ui += f"{'Architecture:':<31} {machine}\n"
-        sys_version = sys.version.replace("\n", "")
-        startup_message_ui += f"{'Python Version:':<31} {sys_version}\n"
-        startup_message_ui += f"{'Mac OS Version:':<31} {platform.mac_ver()[0]}\n"
-        startup_message_ui += f"{'':={'^'}130}\n"
-        self.logger.info(startup_message_ui)
-
         self.globals[MQTT] = dict()
 
         # Setup stores for Hubitat and Tasmota devices
@@ -179,6 +162,29 @@ class Plugin(indigo.PluginBase):
         self.globals[EXPORT][MQTT_BROKERS] = list()
         self.globals[EXPORT][EXPORT_DEVICES] = dict()
         self.globals[EXPORT][EXPORT_ROOT_TOPIC_ID] = ""
+
+    def display_plugin_information(self):
+        try:
+            def plugin_information_message():
+                startup_message_ui = "Plugin Information:\n"
+                startup_message_ui += f"{'':={'^'}80}\n"
+                startup_message_ui += f"{'Plugin Name:':<30} {self.globals[K_PLUGIN_INFO][K_PLUGIN_DISPLAY_NAME]}\n"
+                startup_message_ui += f"{'Plugin Version:':<30} {self.globals[K_PLUGIN_INFO][K_PLUGIN_VERSION]}\n"
+                startup_message_ui += f"{'Plugin ID:':<30} {self.globals[K_PLUGIN_INFO][K_PLUGIN_ID]}\n"
+                startup_message_ui += f"{'Indigo Version:':<30} {indigo.server.version}\n"
+                startup_message_ui += f"{'Indigo License:':<30} {indigo.server.licenseStatus}\n"
+                startup_message_ui += f"{'Indigo API Version:':<30} {indigo.server.apiVersion}\n"
+                startup_message_ui += f"{'Architecture:':<30} {platform.machine()}\n"
+                startup_message_ui += f"{'Python Version:':<30} {sys.version.split(' ')[0]}\n"
+                startup_message_ui += f"{'Mac OS Version:':<30} {platform.mac_ver()[0]}\n"
+                startup_message_ui += f"{'Plugin Process ID:':<30} {os.getpid()}\n"
+                startup_message_ui += f"{'':={'^'}80}\n"
+                return startup_message_ui
+
+            self.logger.info(plugin_information_message())
+
+        except Exception as exception_error:
+            self.exception_handler(exception_error, True)  # Log error and display failing statement
 
     def exception_handler(self, exception_error_message, log_failing_statement):
         filename, line_number, method, statement = traceback.extract_tb(sys.exc_info()[2])[-1]
@@ -709,6 +715,8 @@ class Plugin(indigo.PluginBase):
                 pass
             elif type_id == "outlet":
                 pass
+            elif type_id == "presenceSensor":
+                pass
             elif type_id == "tasmotaOutlet":
                 tasmota_key = values_dict.get("tasmotaDevice", "-NONE-")
                 if tasmota_key != "-NONE-":
@@ -935,7 +943,7 @@ class Plugin(indigo.PluginBase):
                 # Assume Hubitat Elevation device
                 self.deviceStartComm_HubitatElevationDevice(dev)
 
-            self.logger.info(f"Device '{dev.name}' Started")
+            # self.logger.info(f"Device '{dev.name}' Started")
 
         except Exception as exception_error:
             self.exception_handler(exception_error, True)  # Log error and display failing statement
@@ -1651,7 +1659,7 @@ class Plugin(indigo.PluginBase):
 
     def deviceStopComm(self, dev):
         try:
-            self.logger.info(f"Device '{dev.name}' Stopped")
+            # self.logger.info(f"Device '{dev.name}' Stopped")
 
             if dev.deviceTypeId == "mqttBroker":
                 self.globals[MQTT][dev.id][MQTT_EVENT].set()  # Stop the MQTT Client
@@ -2400,6 +2408,9 @@ class Plugin(indigo.PluginBase):
             elif typeId == "outlet":
                 usp_field_id_check_1 = "uspOnOffIndigo"
                 valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
+            elif typeId == "presenceSensor":
+                usp_field_id_check_1 = "uspPresenceIndigo"
+                valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
             elif typeId == "temperatureSensor":
                 usp_field_id_check_1 = "uspTemperatureIndigo"
                 valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
@@ -2794,6 +2805,16 @@ class Plugin(indigo.PluginBase):
                     if bool(values_dict.get("hubitatPropertyRefresh", False)):
                         values_dict["SupportsStatusRequest"] = True
 
+            elif type_id == "presenceSensor":
+                # Presence Sensor validation and option settings
+                if not values_dict.get("uspPresence", False):
+                    error_message = "An Indigo Presence Sensor device requires an association to the Hubitat 'presence' property"
+                    error_dict['uspPresence'] = error_message
+                    error_dict["showAlertText"] = error_message
+                else:
+                    values_dict["SupportsOnState"] = True
+                    values_dict["allowOnStateChange"] = False
+
             elif type_id == "thermostat":
                 # Thermostat validation and option settings
                 if not values_dict.get("uspTemperature", False):
@@ -2895,6 +2916,7 @@ class Plugin(indigo.PluginBase):
                     (filter == "motionSensor" and typeId == "motionSensor") or
                     (filter == "motionSensor" and typeId == "multiSensor") or
                     (filter == "onoff" and typeId == "outlet") or
+                    (filter == "presenceSensor" and typeId == "presenceSensor") or
                     (filter == "temperatureSensor" and typeId == "temperatureSensor") or
                     (filter == "temperatureSensor" and typeId == "thermostat")):
                 menu_list = [("0", "Primary Device - Main UI State")]
@@ -3424,6 +3446,10 @@ class Plugin(indigo.PluginBase):
                 if dev.subType != indigo.kRelayDeviceSubType.Outlet:
                     dev.subType = indigo.kRelayDeviceSubType.Outlet
                     dev.replaceOnServer()
+            elif dev.deviceTypeId == "presenceSensor":
+                if dev.subType != indigo.kSensorDeviceSubType.Presence:
+                    dev.subType = indigo.kSensorDeviceSubType.Presence
+                    dev.replaceOnServer()
             elif dev.deviceTypeId == "temperatureSensor" or dev.deviceTypeId == "temperatureSensorSecondary":
                 if dev.subType != indigo.kSensorDeviceSubType.Temperature:
                     dev.subType = indigo.kSensorDeviceSubType.Temperature
@@ -3731,7 +3757,7 @@ class Plugin(indigo.PluginBase):
                 # note "usp" prefix stands for "User Selectable Property" :)
                 usp_indigo_name = INDIGO_SUB_TYPE_INFO[secondary_type_id][0]  # e.g. "uspIlluminanceIndigo"
 
-                usp_native = usp_indigo_name[:-6]  # Remove 'Indigo' from usp e.g. "uspIlluminanceIndigo" . "uspIlluminance"
+                usp_native = usp_indigo_name[:-6]  # Remove 'Indigo' from usp e.g. "uspIlluminanceIndigo" > "uspIlluminance"
 
                 # TODO: CHECK FOR USP = TRUE
                 usp_required = False

@@ -265,8 +265,11 @@ class ThreadHubHandler(threading.Thread):
                                     self.hubHandlerLogger.warning(f"received battery level event with an invalid payload of \"{payload}\" for device \"{dev.name}\". Event discarded and ignored.")
                                     return
 
-                            dev.updateStateOnServer(key='batteryLevel', value=battery_level)
-                            self.hubHandlerLogger.info(f"received \"{dev.name}\" status update battery level {battery_level}")
+                            if dev.states["batteryLevel"] != battery_level:
+                                dev.updateStateOnServer(key='batteryLevel', value=battery_level)
+                                self.hubHandlerLogger.info(f"received \"{dev.name}\" status update battery level {battery_level}")
+                            # else:
+                            #     self.hubHandlerLogger.info(f"received \"{dev.name}\" status update for unchanged battery level {battery_level}")
 
             # Check for Button
             elif topics_list[3] == "button":
@@ -807,7 +810,13 @@ class ThreadHubHandler(threading.Thread):
                                 uspPresenceIndigo = dev.pluginProps.get("uspPresenceIndigo", INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE)
 
                                 broadcast_device_name = dev.name
-                                if uspPresenceIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
+                                if uspPresenceIndigo == INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE:
+                                    dev.updateStateOnServer(key='onOffState', value=value, uiValue=uiValue)
+                                    if value:
+                                        dev.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
+                                    else:
+                                        dev.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
+                                elif uspPresenceIndigo == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE:
                                     dev.updateStateOnServer(key='presence', value=value, uiValue=uiValue)
                                 elif uspPresenceIndigo == INDIGO_SECONDARY_DEVICE:
                                     # Find linked device in device group

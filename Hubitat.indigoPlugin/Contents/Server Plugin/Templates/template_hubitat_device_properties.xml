@@ -499,11 +499,11 @@
     <Field id="uspPresenceIndigo" type="menu" defaultValue="0"
             visibleBindingId="uspPresence" visibleBindingValue="true" enabledBindingId="uspPresenceIndigoEnabled">
         <Label>Indigo Device / State:</Label>
-        <List class="self" filter="presence" method="listDeviceStateMenuOptions"/>
+        <List class="self" filter="presenceSensor" method="listDeviceStateMenuOptions"/>
      </Field>
     <Field id="space-uspPresence" type="label"
            visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true"><Label/></Field>
-    <Field id="separator-uuspPresence" type="separator" alwaysUseInDialogHeightCalc="true"
+    <Field id="separator-uspPresence" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="hubitatPropertyPresence" visibleBindingValue="true"/>
 
     <!-- Pressure -->
@@ -581,6 +581,12 @@
             <Option value="3">Three [e.g. 1.234]</Option>
         </List>
     </Field>
+    <Field id="space-uspTemperature" type="label"
+           visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspTemperature" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"/>
+
+    <!-- HVAC Mode -->
     <Field id="uspHvacMode" type="checkbox" defaultValue="false"
             visibleBindingId="hubitatPropertyHvacMode" visibleBindingValue="true">
         <Label>HVAC Mode:</Label>
@@ -591,12 +597,10 @@
         <Label>HVAC State:</Label>
         <Description>Associated with Hubitat 'state' Property</Description>
     </Field>
-    <Field id="space-uspTemperature" type="label"
-           visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"><Label/></Field>
-           visibleBindingId="hubitatPropertyTemperature" visibleBindingValue="true"/>
-
-    <Field id="separator-uspTemperature" type="separator" alwaysUseInDialogHeightCalc="true"
-           visibleBindingId="hubitatPropertySetpoint" visibleBindingValue="true"/>
+    <Field id="space-uspHvacMode" type="label"
+           visibleBindingId="hubitatPropertyHvacMode" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspHvacMode" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyHvacMode" visibleBindingValue="true"/>
 
     <!-- Setpoint -->
     <Field id="space-header-uspSetpoint" type="label"
@@ -770,7 +774,7 @@
            visibleBindingId="uspHvacState" visibleBindingValue="true"><Label/></Field>
 
     <!-- Humidity -->
-     <Field id="hideHumidityBroadcast" type="checkbox" defaultValue="false"
+    <Field id="hideHumidityBroadcast" type="checkbox" defaultValue="false"
         visibleBindingId="uspHumidity" visibleBindingValue="true">
         <Description>Hide humidity message broadcasts in Event Log</Description>
     </Field>

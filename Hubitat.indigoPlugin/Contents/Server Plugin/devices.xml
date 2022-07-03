@@ -47,6 +47,38 @@
         <UiDisplayStateId>status</UiDisplayStateId>
 	</Device>
 
+    <!-- Indigo Export (to Hubitat) -->
+    <Device id="indigoExport"  type="relay" subType="indigo.kRelayDeviceSubType.Plugin">
+        <Name>Indigo Export</Name>
+        <ConfigUI>
+            <Template file="Templates/template_indigo_export.xml" />
+		</ConfigUI>
+        <States>
+            <State id="heartbeat">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>MQTT Heartbeat changed</TriggerLabel>
+                <ControlPageLabel>MQTT Heartbeat</ControlPageLabel>
+            </State>
+            <State id="lastPayload">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Payload changed</TriggerLabel>
+                <ControlPageLabel>Last Payload</ControlPageLabel>
+            </State>
+            <State id="lastTopic">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Topic changed</TriggerLabel>
+                <ControlPageLabel>Last Topic</ControlPageLabel>
+            </State>
+            <State id="status">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Status changed</TriggerLabel>
+                <ControlPageLabel>Status</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>status</UiDisplayStateId>
+	</Device>
+
+
     <!-- Tasmota Outlet (Socket) -->
     <Device id="tasmotaOutlet"  type="relay" subType="indigo.kRelayDeviceSubType.Outlet">
         <Name>Tasmota Outlet (Socket)</Name>
@@ -228,6 +260,15 @@
 		</ConfigUI>
 	</Device>
 
+    <!-- Presence-Sensor -->
+    <Device id="presenceSensor"  type="sensor" subType="indigo.kSensorDeviceSubType.Presence">
+        <Name>Presence-Sensor</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
+		</ConfigUI>
+	</Device>
+
     <!-- Scene / Button -->
     <Device id="button"  type="custom">
         <Name>Scene (Button)</Name>
@@ -259,7 +300,7 @@
     <!-- Secondary Devices in a Device Group Follow Below -->
 
     <!-- Acceleration Sensor [Secondary] -->
-    <Device id="accelerationSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Tamper">
+    <Device id="accelerationSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Tamper" allowUserCreation="false">
         <Name>Acceleration Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -268,7 +309,7 @@
 	</Device>
 
     <!-- HSM Sensor [Secondary] -->
-    <Device id="hsmSensorSecondary" type="custom" subType="indigo.kDeviceSubType.Security">
+    <Device id="hsmSensorSecondary" type="custom" subType="indigo.kDeviceSubType.Security" allowUserCreation="false">
         <Name>HSM [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -299,7 +340,7 @@
 	</Device>
 
     <!-- Humidity Sensor [Secondary] -->
-    <Device id="humiditySensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Humidity">
+    <Device id="humiditySensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Humidity" allowUserCreation="false">
         <Name>Humidity Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -308,7 +349,7 @@
 	</Device>
 
     <!-- Illuminance Sensor [Secondary] -->
-    <Device id="illuminanceSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Illuminance">
+    <Device id="illuminanceSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Illuminance" allowUserCreation="false">
         <Name>Illuminance Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -317,7 +358,7 @@
 	</Device>
 
     <!-- Motion Sensor [Secondary] -->
-    <Device id="motionSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Motion">
+    <Device id="motionSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Motion" allowUserCreation="false">
         <Name>Motion Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -326,7 +367,7 @@
 	</Device>
 
     <!-- Presence Sensor [Secondary] -->
-    <Device id="presenceSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Pressure">
+    <Device id="presenceSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Presence" allowUserCreation="false">
         <Name>Presence Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -334,7 +375,7 @@
 	</Device>
 
     <!-- Pressure Sensor [Secondary] -->
-    <Device id="pressureSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Pressure">
+    <Device id="pressureSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Pressure" allowUserCreation="false">
         <Name>Pressure Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -342,7 +383,7 @@
 	</Device>
 
     <!-- Temperature Sensor [Secondary] -->
-    <Device id="temperatureSensorSecondary" type="sensor">
+    <Device id="temperatureSensorSecondary" type="sensor" allowUserCreation="false">
         <Name>Temperature Sensor [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -350,7 +391,7 @@
 	</Device>
 
     <!-- Valve [Secondary] -->
-    <Device id="valveSecondary" type="dimmer" subType="indigo.kDimmerDeviceSubType.Valve">
+    <Device id="valveSecondary" type="dimmer" subType="indigo.kDimmerDeviceSubType.Valve" allowUserCreation="false">
         <Name>Thermostat Valve [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
@@ -358,41 +399,11 @@
 	</Device>
 
     <!-- Voltage [Secondary] -->
-    <Device id="voltageSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Voltage">
+    <Device id="voltageSensorSecondary" type="sensor" subType="indigo.kSensorDeviceSubType.Voltage" allowUserCreation="false">
         <Name>Voltage [Secondary]</Name>
         <ConfigUI>
             <Template file="Templates/template_sub_model.xml" />
 		</ConfigUI>
-	</Device>
-
-    <Device id="indigoExport"  type="relay" subType="indigo.kRelayDeviceSubType.Plugin">
-        <Name>Indigo Export</Name>
-        <ConfigUI>
-            <Template file="Templates/template_indigo_export.xml" />
-		</ConfigUI>
-        <States>
-            <State id="heartbeat">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>MQTT Heartbeat changed</TriggerLabel>
-                <ControlPageLabel>MQTT Heartbeat</ControlPageLabel>
-            </State>
-            <State id="lastPayload">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Last Payload changed</TriggerLabel>
-                <ControlPageLabel>Last Payload</ControlPageLabel>
-            </State>
-            <State id="lastTopic">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Last Topic changed</TriggerLabel>
-                <ControlPageLabel>Last Topic</ControlPageLabel>
-            </State>
-            <State id="status">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Status changed</TriggerLabel>
-                <ControlPageLabel>Status</ControlPageLabel>
-            </State>
-        </States>
-        <UiDisplayStateId>status</UiDisplayStateId>
 	</Device>
 
 </Devices>

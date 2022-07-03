@@ -14,13 +14,16 @@ try:
     from cryptography.fernet import Fernet
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-    cryptography_imported = True
 except ImportError:
-    cryptography_imported = False
+    raise ImportError("'cryptography' library missing.\n\n========> Run 'pip3 install cryptography' in Terminal window, then reload plugin. <========\n")
 
 import logging
-import paho.mqtt.client as mqtt
-import queue
+
+try:
+    import paho.mqtt.client as mqtt
+except ImportError:
+    raise ImportError("'paho-mqtt' library missing.\n\n========> Run 'pip3 install paho-mqtt' in Terminal window, then reload plugin. <========\n")
+
 import sys
 import threading
 import traceback
@@ -86,10 +89,6 @@ class ThreadMqttHandler(threading.Thread):
 
     def run(self):
         try:
-            if not cryptography_imported:
-                self.mqttHandlerLogger.error("Python package cryptography is required. Run command 'pip3 install cryptography' in terminal and restart plugin.")
-                return
-
             # Initialise routine on thread start
 
             mqtt_broker_dev = indigo.devices[self.mqtt_broker_dev_id]
