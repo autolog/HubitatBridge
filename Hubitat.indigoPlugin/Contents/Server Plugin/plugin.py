@@ -757,6 +757,7 @@ class Plugin(indigo.PluginBase):
 
             self.globals[MQTT][dev_id][MQTT_CLIENT_PREFIX] = values_dict.get("mqttClientPrefix", "indigo_mac")
             self.globals[MQTT][dev_id][MQTT_CLIENT_ID] = f"{self.globals[MQTT][dev_id][MQTT_CLIENT_PREFIX]}-D{dev_id}"
+            self.globals[MQTT][dev_id][MQTT_PROTOCOL] = int(values_dict.get('mqttProtocol', 4))
             self.globals[MQTT][dev_id][MQTT_IP] = str(values_dict.get("mqtt_broker_ip", ""))
             self.globals[MQTT][dev_id][MQTT_PORT] = int(values_dict.get("mqtt_broker_port", 0))
             self.globals[MQTT][dev_id][MQTT_USERNAME] = values_dict.get("mqtt_username", "")
@@ -958,6 +959,7 @@ class Plugin(indigo.PluginBase):
 
             self.globals[MQTT][dev_id][MQTT_CLIENT_PREFIX] = dev.pluginProps.get("mqttClientPrefix", "indigo_mac")
             self.globals[MQTT][dev_id][MQTT_CLIENT_ID] = f"{self.globals[MQTT][dev_id][MQTT_CLIENT_PREFIX]}-D{dev.id}"
+            self.globals[MQTT][dev_id][MQTT_PROTOCOL] = int(dev.pluginProps.get('mqttProtocol', 4))
             self.globals[MQTT][dev_id][MQTT_IP] = str(dev.pluginProps.get("mqtt_broker_ip", ""))
             self.globals[MQTT][dev_id][MQTT_PORT] = int(dev.pluginProps.get("mqtt_broker_port", 0))
             self.globals[MQTT][dev_id][MQTT_USERNAME] = dev.pluginProps.get("mqtt_username", "")
@@ -1662,8 +1664,8 @@ class Plugin(indigo.PluginBase):
             # self.logger.info(f"Device '{dev.name}' Stopped")
 
             if dev.deviceTypeId == "mqttBroker":
-                self.globals[MQTT][dev.id][MQTT_EVENT].set()  # Stop the MQTT Client
-
+                if MQTT_EVENT in self.globals[MQTT][dev.id]:
+                    self.globals[MQTT][dev.id][MQTT_EVENT].set()  # Stop the MQTT Client
                 return
 
             if dev.deviceTypeId == "indigoExport":

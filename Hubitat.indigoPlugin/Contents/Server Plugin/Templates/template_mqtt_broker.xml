@@ -12,8 +12,19 @@
         <Label>MQTT CLIENT PREFIX:</Label>
     </Field>
     <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
-        <Label>^ Must be a unique prefix on the MQTT Broker being connected to. The plugin appends '-Dnnnnnn' where  nnnnnn is the device Id of this device.</Label>
+        <Label>^ User definable prefix on the MQTT Broker being connected to. The plugin appends '-Dnnnnnn' (where  nnnnnn is the device Id of this device) in order to make the name unique.</Label>
     </Field>
+    <Field id="mqttProtocol" type="menu" defaultValue="4" alwaysUseInDialogHeightCalc="true">
+       <Label>MQTT Protocol:</Label>
+       <List>
+          <Option value="4">MQTTv311</Option>
+          <Option value="3">MQTTv31</Option>
+       </List>
+    </Field>
+    <Field id="help-1B" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
+        <Label>^ Select required MQTT Protocol. MQTTv311 is the default and this works with the Indigo MQTT Broker plugin.</Label>
+    </Field>
+
     <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
     <Field id="mqtt_broker_ip" type="textfield"  defaultValue="" alwaysUseInDialogHeightCalc="true">
         <Label>MQTT Broker IP Address:</Label>

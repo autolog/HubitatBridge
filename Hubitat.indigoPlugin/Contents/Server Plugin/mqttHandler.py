@@ -95,10 +95,15 @@ class ThreadMqttHandler(threading.Thread):
             mqtt_broker_dev.updateStateOnServer(key="status", value="disconnected")
             mqtt_broker_dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
 
+            self.mqttHandlerLogger.info(f"Client ID: {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_CLIENT_ID]}")
+
             self.mqtt_client = mqtt.Client(client_id=self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_CLIENT_ID],
                                            clean_session=True,
                                            userdata=None,
-                                           protocol=mqtt.MQTTv31)
+                                           protocol=self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PROTOCOL])
+
+            # self.client = mqtt.Client(client_id=f"indigo-mqtt-{device.id}", clean_session=True, userdata=None, protocol=self.protocol, transport=self.transport)  # Example from @FlyingDiver
+
             self.mqtt_client.on_connect = self.on_connect
             self.mqtt_client.on_disconnect = self.on_disconnect
             self.mqtt_client.on_subscribe = self.on_subscribe
@@ -196,11 +201,12 @@ class ThreadMqttHandler(threading.Thread):
             mqtt_broker_dev.updateStateOnServer(key="status", value="connected")
             mqtt_broker_dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
 
-            if self.bad_disconnection:
+            if self.bad_disconnection:  # Check if previous disconnection was bad to set as "reconnected" as opposed to "connected"
                 self.bad_disconnection = False
-                self.mqttHandlerLogger.info(f"Reconnected to MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}")
+                connection_ui = "Reconnected"
             else:
-                self.mqttHandlerLogger.info(f"Connected to MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}")
+                connection_ui = "Connected"
+            self.mqttHandlerLogger.info(f"{connection_ui} to MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}")
 
         except Exception as exception_error:
             self.exception_handler(exception_error, True)  # Log error and display failing statement
@@ -211,7 +217,8 @@ class ThreadMqttHandler(threading.Thread):
             if rc != 0:
                 # TODO - Interpret RC code
                 self.mqttHandlerLogger.warning(
-                    f"Plugin encountered an unexpected disconnection from MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}. MQTT Broker [Code {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}]. Retrying connection ...")
+                    f"Plugin encountered an unexpected disconnection from MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}. MQTT Broker [Code {rc}]. Retrying connection ...")
+
                 self.bad_disconnection = True
             else:
                 self.mqttHandlerLogger.info(f"Disconnected from MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}")
@@ -278,7 +285,7 @@ class ThreadMqttHandler(threading.Thread):
 
             elif topic_list[0] in (TASMOTA_ROOT_TOPIC_TASMOTA, TASMOTA_ROOT_TOPIC_STAT, TASMOTA_ROOT_TOPIC_TELE):
 
-                # TODO: REmove this - 18-March-2022. = self.mqttHandlerLogger.error(f"PAYLOAD TYPE: {type(payload)}, PAYLOAD DATA: {payload}")
+                # TODO: Remove this - 18-March-2022. = self.mqttHandlerLogger.error(f"PAYLOAD TYPE: {type(payload)}, PAYLOAD DATA: {payload}")
 
                 self.globals[QUEUES][MQTT_TASMOTA_QUEUE].put([self.mqtt_message_sequence, MQTT_PROCESS_COMMAND_HANDLE_TOPICS, msg.topic, topic_list, payload])
 
