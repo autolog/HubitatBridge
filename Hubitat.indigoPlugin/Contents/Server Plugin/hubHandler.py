@@ -192,6 +192,8 @@ class ThreadHubHandler(threading.Thread):
                                     self.hubHandlerLogger.info(f"received \"{hsm_dev.name}\" Hubitat Safety Monitor Arm \"{payload}\" event")
                 return
 
+            # if hubitat_device_name == "Presence Sensor 1":  # Testing Debug to add breakpoint for specific device
+            #     a = 1 + 2
             if hubitat_device_name not in self.globals[HE_HUBS][hub_name][HE_DEVICES]:
                 self.globals[HE_HUBS][hub_name][HE_DEVICES][hubitat_device_name] = dict()  # Hubitat device name
             with self.globals[LOCK_HE_LINKED_INDIGO_DEVICES]:
@@ -835,6 +837,34 @@ class ThreadHubHandler(threading.Thread):
 
                                 if not bool(dev.pluginProps.get("hidePresenceBroadcast", False)):
                                     self.hubHandlerLogger.info(f"received \"{broadcast_device_name}\" presence sensor \"{uiValue}\" event")
+
+            # Check for Radar [Aqara FP1 Presence]
+            if topics_list[3] == "presence" or topics_list[3] == "presence_derived" or topics_list[3] == "presence_event":
+                if len(topics_list) == 4:
+                    with self.globals[LOCK_HE_LINKED_INDIGO_DEVICES]:
+                        for dev_id in self.globals[HE_HUBS][hub_name][HE_DEVICES][hubitat_device_name][HE_LINKED_INDIGO_DEVICES]:
+                            dev = indigo.devices[dev_id]
+                            if dev.pluginProps.get("uspRadar", False):
+                                value = True if payload == "true" else False
+                                if topics_list[3] == "presence":
+                                    dev.updateStateOnServer(key='presence', value=value)
+                                elif topics_list[3] == "presence_event":
+                                    dev.updateStateOnServer(key='presenceEvent', value=payload)
+                                else: # presence_derived
+                                    broadcast_device_name = dev.name
+                                    dev.updateStateOnServer(key='presenceDerived', value=value)
+                                    if value:
+                                        uiValue = "present"
+                                    else:
+                                        uiValue = "inactive"
+                                    dev.updateStateOnServer(key='onOffState', value=value, uiValue=uiValue)
+                                    if value:
+                                        dev.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
+                                    else:
+                                        dev.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
+
+                                    if not bool(dev.pluginProps.get("hideRadarBroadcast", False)):
+                                        self.hubHandlerLogger.info(f"received \"{broadcast_device_name}\" radar [FP1] sensor \"{uiValue}\" event")
 
             # Check for Pressure
             elif topics_list[3] == "measure-pressure" or topics_list[3] == "pressure":

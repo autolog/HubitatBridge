@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Z-Wave Interpreter - Constants © Autolog 2020
+# Hubitat - Plugin © Autolog 2021-2022
 #
 
 # plugin Constants
@@ -179,6 +179,7 @@ HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["power"] = ["outlet"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["presence"] = ["button", "contactSensor", "motionSensor", "multiSensor", "presenceSensor", "outlet", "temperatureSensor"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["presence-sensor"] = ["button", "contactSensor", "motionSensor", "multiSensor", "outlet", "presenceSensor", "temperatureSensor"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["pressure"] = ["multiSensor", "temperatureSensor"]
+HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["radar"] = ["radarSensor"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["state"] = ["blind", "thermostat"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["temperature"] = ["humiditySensor", "illuminanceSensor", "motionSensor", "multiSensor", "temperatureSensor", "thermostat"]
 HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES["thermostat-setpoint"] = ["thermostat"]
@@ -198,6 +199,7 @@ HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["motionSensor"] = ["motion
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["multiSensor"] = ["motion"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["outlet"] = ["onoff"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["presenceSensor"] = ["presence"]
+HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["radarSensor"] = ["radar"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["temperatureSensor"] = ["temperature", "measure-temperature"]
 HE_PRIMARY_INDIGO_DEVICE_TYPES_AND_HABITAT_PROPERTIES["thermostat"] = ["temperature", "measure-temperature"]
 
@@ -258,6 +260,7 @@ INDIGO_PRIMARY_DEVICE_INFO["motionSensor"] = [indigo.kSensorDeviceSubType.Motion
 INDIGO_PRIMARY_DEVICE_INFO["multiSensor"] = [indigo.kSensorDeviceSubType.Motion, "Motion"]
 INDIGO_PRIMARY_DEVICE_INFO["outlet"] = [indigo.kRelayDeviceSubType.Outlet, "Outlet"]
 INDIGO_PRIMARY_DEVICE_INFO["presenceSensor"] = [indigo.kSensorDeviceSubType.Presence, "Presence"]
+INDIGO_PRIMARY_DEVICE_INFO["radarSensor"] = [indigo.kSensorDeviceSubType.Presence, "Presence"]
 INDIGO_PRIMARY_DEVICE_INFO["temperatureSensor"] = [indigo.kSensorDeviceSubType.Temperature, "Temperature"]
 INDIGO_PRIMARY_DEVICE_INFO["thermostat"] = [indigo.kSensorDeviceSubType.Temperature, "Thermostat"]
 INDIGO_PRIMARY_DEVICE_INFO["hubitatElevationHub"] = [indigo.kDeviceSubType.Other, "Hub"]

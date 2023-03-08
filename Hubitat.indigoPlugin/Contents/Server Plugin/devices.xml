@@ -269,6 +269,15 @@
 		</ConfigUI>
 	</Device>
 
+    <!-- Radar-Sensor -->
+    <Device id="radarSensor"  type="sensor" subType="indigo.kSensorDeviceSubType.Presence">
+        <Name>Radar-Sensor</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
+		</ConfigUI>
+	</Device>
+
     <!-- Scene / Button -->
     <Device id="button"  type="custom">
         <Name>Scene (Button)</Name>

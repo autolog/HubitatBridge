@@ -25,6 +25,7 @@
     <Field id="hubitatPropertyPower" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyPresence" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyPressure" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyRadar" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertySetpoint" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyState" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyTemperature" type="checkbox" defaultValue="false" hidden="true" />
@@ -542,6 +543,29 @@
            visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true"><Label/></Field>
     <Field id="separator-uspPressure" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="hubitatPropertyPressure" visibleBindingValue="true"/>
+
+    <!-- Radar [aka Presence for Aqara FP1 -->
+    <Field id="space-header-uspRadar" type="label"
+           visibleBindingId="hubitatPropertyRadar" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspRadar" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyRadar" visibleBindingValue="true">
+        <Label>Radar</Label>
+    </Field>
+    <Field id="uspRadar" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyRadar" visibleBindingValue="true">
+        <Label>Radar:</Label>
+        <Description>Associated with Hubitat 'radar' Property</Description>
+    </Field>
+    <Field id="uspRadarIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspRadarIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspRadar" visibleBindingValue="true" enabledBindingId="uspRadarIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="radarSensor" method="listDeviceStateMenuOptions"/>
+     </Field>
+    <Field id="space-uspRadar" type="label"
+           visibleBindingId="hubitatPropertyRadar" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspRadar" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyRadar" visibleBindingValue="true"/>
 
     <!-- Temperature -->
     <Field id="space-header-uspTemperature" type="label"

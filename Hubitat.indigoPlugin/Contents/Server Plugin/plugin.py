@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Hubitat - Plugin © Autolog 2021-2022
+# Hubitat - MQTT Handler © Autolog 2021 - 2023
 #
 
 
@@ -15,7 +15,7 @@ try:
     from cryptography.hazmat.primitives import hashes  # noqa
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC  # noqa
 except ImportError:
-    raise ImportError("'cryptography' library missing.\n\n========> Run 'pip3 install cryptography' in Terminal window, then reload plugin. <========\n")
+    pass
 
 import colorsys
 from datetime import datetime
@@ -29,6 +29,7 @@ except ImportError:
     # Python 2
     import Queue as queue
 import re
+import requirements
 import socket
 import sys
 import threading
@@ -96,6 +97,8 @@ class Plugin(indigo.PluginBase):
     def __init__(self, plugin_id, plugin_display_name, plugin_version, plugin_prefs):
         super(Plugin, self).__init__(plugin_id, plugin_display_name, plugin_version, plugin_prefs)
 
+        self.do_not_start_stop_devices = False
+
         logging.addLevelName(K_LOG_LEVEL_TOPIC, "topic")
 
         def topic(self, message, *args, **kws):  # noqa [Shadowing names from outer scope = self]
@@ -162,6 +165,10 @@ class Plugin(indigo.PluginBase):
         self.globals[EXPORT][MQTT_BROKERS] = list()
         self.globals[EXPORT][EXPORT_DEVICES] = dict()
         self.globals[EXPORT][EXPORT_ROOT_TOPIC_ID] = ""
+
+    def __del__(self):
+
+        indigo.PluginBase.__del__(self)
 
     def display_plugin_information(self):
         try:
@@ -717,6 +724,8 @@ class Plugin(indigo.PluginBase):
                 pass
             elif type_id == "presenceSensor":
                 pass
+            elif type_id == "radarSensor":
+                pass
             elif type_id == "tasmotaOutlet":
                 tasmota_key = values_dict.get("tasmotaDevice", "-NONE-")
                 if tasmota_key != "-NONE-":
@@ -923,6 +932,9 @@ class Plugin(indigo.PluginBase):
 
     def deviceStartComm(self, dev):
         try:
+            if self.do_not_start_stop_devices:  # This is set on if Package requirements listed in requirements.txt are not met
+                return
+
             dev.stateListOrDisplayStateIdChanged()  # Ensure that latest devices.xml is being used
 
             if not dev.enabled:
@@ -1661,6 +1673,9 @@ class Plugin(indigo.PluginBase):
 
     def deviceStopComm(self, dev):
         try:
+            if self.do_not_start_stop_devices:  # This is set on if Package requirements listed in requirements.txt are not met
+                return
+
             # self.logger.info(f"Device '{dev.name}' Stopped")
 
             if dev.deviceTypeId == "mqttBroker":
@@ -2164,6 +2179,7 @@ class Plugin(indigo.PluginBase):
                     plugin_props["hubitatPropertyPower"] = False
                     plugin_props["hubitatPropertyPresence"] = False
                     plugin_props["hubitatPropertyPressure"] = False
+                    plugin_props["hubitatPropertyRadar"] = False
                     plugin_props["hubitatPropertySetpoint"] = False
                     plugin_props["hubitatPropertyHvacState"] = False
                     plugin_props["hubitatPropertyState"] = False
@@ -2188,6 +2204,7 @@ class Plugin(indigo.PluginBase):
                     plugin_props["uspPower"] = False
                     plugin_props["uspPresence"] = False
                     plugin_props["uspPressure"] = False
+                    plugin_props["uspRadar"] = False
                     plugin_props["uspSetpoint"] = False
                     plugin_props["uspState"] = False
                     plugin_props["uspTemperature"] = False
@@ -2274,6 +2291,20 @@ class Plugin(indigo.PluginBase):
             # Presence State
             if (bool(dev.pluginProps.get("uspPresence", False)) and
                     dev.pluginProps.get("uspPresenceIndigo", INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE) == INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE):
+                presence_state = self.getDeviceStateDictForBoolTrueFalseType("presence", "Presence Changed", "Presence")
+                if presence_state not in state_list:
+                    state_list.append(presence_state)
+
+            # RADAR [Aqara FP1] related States
+            if bool(dev.pluginProps.get("uspRadar", False)):
+                presence_derived_state = self.getDeviceStateDictForBoolTrueFalseType("presenceDerived", "Presence Derived Changed", "Presence Derived")
+                if presence_derived_state not in state_list:
+                    state_list.append(presence_derived_state)
+
+                presence_event_state = self.getDeviceStateDictForBoolTrueFalseType("presenceEvent", "Presence Event Changed", "Presence Event")
+                if presence_event_state not in state_list:
+                    state_list.append(presence_event_state)
+
                 presence_state = self.getDeviceStateDictForBoolTrueFalseType("presence", "Presence Changed", "Presence")
                 if presence_state not in state_list:
                     state_list.append(presence_state)
@@ -2413,6 +2444,9 @@ class Plugin(indigo.PluginBase):
             elif typeId == "presenceSensor":
                 usp_field_id_check_1 = "uspPresenceIndigo"
                 valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
+            elif typeId == "radarSensor":
+                usp_field_id_check_1 = "uspRadarIndigo"
+                valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
             elif typeId == "temperatureSensor":
                 usp_field_id_check_1 = "uspTemperatureIndigo"
                 valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
@@ -2424,7 +2458,7 @@ class Plugin(indigo.PluginBase):
 
             for usp_field_id in ("uspAccelerationIndigo", "uspButtonIndigo", "uspPositionIndigo", "uspContactIndigo", "uspDimmerIndigo",
                                  "uspEnergyIndigo", "uspHumidityIndigo", "uspIlluminanceIndigo", "uspMotionIndigo",
-                                 "uspOnOffIndigo", "uspPowerIndigo", "uspPresenceIndigo", "uspPressureIndigo",
+                                 "uspOnOffIndigo", "uspPowerIndigo", "uspPresenceIndigo", "uspPressureIndigo", "uspRadarIndigo",
                                  "uspTemperatureIndigo", "uspSetpointIndigo", "uspValveIndigo", "uspVoltageIndigo"):
                 if (usp_field_id != usp_field_id_check_1 and usp_field_id != usp_field_id_check_2 and
                         (usp_field_id not in valuesDict or
@@ -2443,6 +2477,13 @@ class Plugin(indigo.PluginBase):
 
     def startup(self):
         try:
+            try:
+                requirements.requirements_check(self.globals[K_PLUGIN_INFO][K_PLUGIN_ID])
+            except ImportError as exception_error:
+                self.logger.error(f"PLUGIN STOPPED: {exception_error}")
+                self.do_not_start_stop_devices = True
+                self.stopPlugin()
+
             indigo.devices.subscribeToChanges()
 
             # Create Queues for receiving MQTT topics
@@ -2817,6 +2858,16 @@ class Plugin(indigo.PluginBase):
                     values_dict["SupportsOnState"] = True
                     values_dict["allowOnStateChange"] = False
 
+            elif type_id == "radarSensor":
+                # Radar Sensor validation and option settings
+                if not values_dict.get("uspRadar", False):
+                    error_message = "An Indigo Radar Sensor device requires an association to the Hubitat 'Radar' property"
+                    error_dict['uspRadar'] = error_message
+                    error_dict["showAlertText"] = error_message
+                else:
+                    values_dict["SupportsOnState"] = True
+                    values_dict["allowOnStateChange"] = False
+
             elif type_id == "thermostat":
                 # Thermostat validation and option settings
                 if not values_dict.get("uspTemperature", False):
@@ -2919,6 +2970,7 @@ class Plugin(indigo.PluginBase):
                     (filter == "motionSensor" and typeId == "multiSensor") or
                     (filter == "onoff" and typeId == "outlet") or
                     (filter == "presenceSensor" and typeId == "presenceSensor") or
+                    (filter == "radarSensor" and typeId == "radarSensor") or
                     (filter == "temperatureSensor" and typeId == "temperatureSensor") or
                     (filter == "temperatureSensor" and typeId == "thermostat")):
                 menu_list = [("0", "Primary Device - Main UI State")]
@@ -3200,6 +3252,13 @@ class Plugin(indigo.PluginBase):
                             else:
                                 valuesDict["hubitatPropertyPressure"] = False
 
+                        elif hubitat_device_property == "radar":
+                            hubitat_device_property = "radar"
+                            if typeId in HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES[hubitat_device_property]:
+                                valuesDict["hubitatPropertyRadar"] = True
+                            else:
+                                valuesDict["hubitatPropertyRadar"] = False
+
                         elif hubitat_device_property == "measure-temperature" or hubitat_device_property == "temperature":
                             hubitat_device_property = "temperature"
                             if typeId in HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES[hubitat_device_property]:
@@ -3448,7 +3507,7 @@ class Plugin(indigo.PluginBase):
                 if dev.subType != indigo.kRelayDeviceSubType.Outlet:
                     dev.subType = indigo.kRelayDeviceSubType.Outlet
                     dev.replaceOnServer()
-            elif dev.deviceTypeId == "presenceSensor":
+            elif dev.deviceTypeId == "presenceSensor" or dev.deviceTypeId == "radar":
                 if dev.subType != indigo.kSensorDeviceSubType.Presence:
                     dev.subType = indigo.kSensorDeviceSubType.Presence
                     dev.replaceOnServer()
@@ -3956,10 +4015,6 @@ class Plugin(indigo.PluginBase):
                     if self.globals[MQTT][mqtt_broker_device_id][MQTT_PUBLISH_TO_HOMIE]:
                         self.globals[MQTT][mqtt_broker_device_id][MQTT_CLIENT].publish(topic, payload, 1, True)  # noqa [parameter value is not used] - n.b. QOS=1 Retain=True
                         published = True
-
-
-
-
 
             # Now check if topic should be logged
             if published:

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Hubitat - MQTT Handler © Autolog 2022
+# Hubitat - MQTT Handler © Autolog 2022 - 2023
 #
 
 try:
@@ -15,14 +15,14 @@ try:
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 except ImportError:
-    raise ImportError("'cryptography' library missing.\n\n========> Run 'pip3 install cryptography' in Terminal window, then reload plugin. <========\n")
+    pass
 
 import logging
 
 try:
     import paho.mqtt.client as mqtt
 except ImportError:
-    raise ImportError("'paho-mqtt' library missing.\n\n========> Run 'pip3 install paho-mqtt' in Terminal window, then reload plugin. <========\n")
+    pass
 
 import sys
 import threading
