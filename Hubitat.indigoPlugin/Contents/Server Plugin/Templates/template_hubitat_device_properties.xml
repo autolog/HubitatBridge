@@ -19,6 +19,7 @@
     <Field id="hubitatPropertyHvacMode" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyHvacState" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyIlluminance" type="checkbox" defaultValue="false" hidden="true" />
+    <Field id="hubitatPropertyLock" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyMotion" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyOnOff" type="checkbox" defaultValue="false" hidden="true" />
     <Field id="hubitatPropertyPosition" type="checkbox" defaultValue="false" hidden="true" />
@@ -39,6 +40,7 @@
 
     <Field id="NumHumidityInputs" type="textfield" defaultValue="1" hidden="true"/>
     <Field id="NumTemperatureInputs" type="textfield" defaultValue="1" hidden="true"/>
+    <Field id="IsLockSubType" type="checkbox" defaultValue="false" hidden="true"/>
     <Field id="ShowCoolHeatEquipmentStateUI" type="checkbox" defaultValue="false" hidden="true"/>
     <Field id="SupportsBatteryLevel" type="checkbox" defaultValue="true" hidden="true"/>
     <Field id="SupportsColor" type="checkbox" defaultValue="false" hidden="true"/>
@@ -386,6 +388,47 @@
     <Field id="separator-uspIlluminance" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="hubitatPropertyIlluminance" visibleBindingValue="true"/>
 
+    <!-- Lock -->
+    <Field id="space-header-uspLock" type="label"
+           visibleBindingId="hubitatPropertyLock" visibleBindingValue="true"><Label/></Field>
+    <Field id="header-uspLock" type="label" alwaysUseInDialogHeightCalc="true" fontColor="orange"
+            visibleBindingId="hubitatPropertyLock" visibleBindingValue="true">
+        <Label>Lock</Label>
+    </Field>
+    <Field id="uspLock" type="checkbox" defaultValue="false"
+            visibleBindingId="hubitatPropertyLock" visibleBindingValue="true">
+        <Label>Lock:</Label>
+        <Description>Associated with Hubitat 'Lock' Property</Description>
+    </Field>
+    <Field id="uspLockIndigoEnabled" type="checkbox" defaultValue="true" hidden="true"/>
+    <Field id="uspLockIndigo" type="menu" defaultValue="0"
+            visibleBindingId="uspLock" visibleBindingValue="true" enabledBindingId="uspLockIndigoEnabled">
+        <Label>Indigo Device / State:</Label>
+        <List class="self" filter="lock" method="listDeviceStateMenuOptions"/>
+    </Field>
+
+    <Field id="uspLockDelayBeforeLocking" type="textfield" defaultValue="0"
+           visibleBindingId="uspLock" visibleBindingValue="true" hidden="true">
+        <Label>Lock - Delay Before locking:</Label>
+    </Field>
+    <Field id="uspLockDurationBeforeUnlocking" type="textfield" defaultValue="0"
+           visibleBindingId="uspLock" visibleBindingValue="true" hidden="true">
+        <Label>Lock - Duration Before Unlocking:</Label>
+    </Field>
+    <Field id="uspUnlockDelayBeforeUnlocking" type="textfield" defaultValue="0"
+           visibleBindingId="uspLock" visibleBindingValue="true" hidden="true">
+        <Label>Unlock - Delay Before Unlocking:</Label>
+    </Field>
+    <Field id="uspUnlockDurationBeforeLocking" type="textfield" defaultValue="0"
+           visibleBindingId="uspLock" visibleBindingValue="true" hidden="true">
+        <Label>Unlock - Duration Before Locking:</Label>
+    </Field>
+
+    <Field id="space-uspLock" type="label"
+           visibleBindingId="hubitatPropertyLock" visibleBindingValue="true"><Label/></Field>
+    <Field id="separator-uspLock" type="separator" alwaysUseInDialogHeightCalc="true"
+           visibleBindingId="hubitatPropertyLock" visibleBindingValue="true"/>
+
     <!-- Motion -->
     <Field id="space-header-uspMotion" type="label"
            visibleBindingId="hubitatPropertyMotion" visibleBindingValue="true"><Label/></Field>
@@ -725,7 +768,7 @@
     <Field id="separator-uspVoltage" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="hubitatPropertyVoltage" visibleBindingValue="true"/>
 
-<!-- User Selectable Broadcast Logging - Visibility that is set is dependant on whether User Selectable Properties enabled  -->
+<!-- User Selectable Broadcast Logging - Visibility that is set is dependent on whether User Selectable Properties enabled  -->
 
 <!--    <Field id="separator-3" type="separator" alwaysUseInDialogHeightCalc="true"/>-->
     <Field id="header-logging" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green">
@@ -813,7 +856,15 @@
     <Field id="space-hideIlluminanceBroadcast" type="label"
            visibleBindingId="uspIlluminance" visibleBindingValue="true"><Label/></Field>
 
-    <!-- Motion -->
+    <!-- Lock -->
+    <Field id="hideLockBroadcast" type="checkbox" defaultValue="false"
+        visibleBindingId="uspLock" visibleBindingValue="true">
+        <Description>Hide Lock message broadcasts in Event Log</Description>
+    </Field>
+    <Field id="space-hideLockBroadcast" type="label"
+           visibleBindingId="uspLock" visibleBindingValue="true"><Label/></Field>
+
+     <!-- Motion -->
     <Field id="hideMotionBroadcast" type="checkbox" defaultValue="false"
         visibleBindingId="uspMotion" visibleBindingValue="true">
         <Description>Hide motion sensor message broadcasts in Event Log</Description>

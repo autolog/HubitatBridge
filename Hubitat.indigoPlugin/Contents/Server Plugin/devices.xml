@@ -233,6 +233,15 @@
 		</ConfigUI>
 	</Device>
 
+    <!-- Lock -->
+    <Device id="lock" type="relay" subType="indigo.kRelayDeviceSubType.Lock">
+        <Name>Lock</Name>
+        <ConfigUI>
+            <Template file="Templates/template_hubitat.xml" />
+            <Template file="Templates/template_hubitat_device_properties.xml" />
+		</ConfigUI>
+	</Device>
+
     <!-- Motion Sensor -->
     <Device id="motionSensor" type="sensor" subType="indigo.kSensorDeviceSubType.Motion">
         <Name>Motion Sensor</Name>

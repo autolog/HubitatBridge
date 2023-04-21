@@ -12,7 +12,7 @@
         <Label>Hubitat Elevation (HE) Name:</Label>
     </Field>
     <Field id="help-1" type="label" alignWithControl="true" alwaysUseInDialogHeightCalc="true">
-        <Label>^ Must be the Hub Name as recorded in the Hubitat Eleveation MQTT App > MQTT Broker Settings.</Label>
+        <Label>^ Must be the Hub Name as recorded in the Hubitat Elevation MQTT App > MQTT Broker Settings.</Label>
     </Field>
     <Field id="space-2" type="label" alwaysUseInDialogHeightCalc="true"><Label/></Field>
 
@@ -70,7 +70,7 @@
     <Field id="separator-uspHsm" type="separator" alwaysUseInDialogHeightCalc="true"
            visibleBindingId="uspHsm" visibleBindingValue="true"/>
 
-<!-- User Selectable Broadcast Logging - Visibility that is set is dependant on whether User Selectable Properties enabled  -->
+<!-- User Selectable Broadcast Logging - Visibility that is set is dependent on whether User Selectable Properties enabled  -->
 
 <!--    <Field id="separator-3" type="separator" alwaysUseInDialogHeightCalc="true"/>-->
     <Field id="header-logging" type="label" alwaysUseInDialogHeightCalc="true" fontColor="green"

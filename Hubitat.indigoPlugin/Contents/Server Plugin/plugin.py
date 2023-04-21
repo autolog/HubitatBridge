@@ -272,8 +272,20 @@ class Plugin(indigo.PluginBase):
 
             mqtt_filter_key = f"{hubitat_hub_name.lower()}|{hubitat_device_name.lower()}"
 
+            # ##### Lock #####
+            if action.deviceAction == indigo.kDeviceAction.Lock:
+                self.logger.info(f"sending \"Lock\" to \"{dev.name}\"")
+                topic = f"{MQTT_ROOT_TOPIC}/{hubitat_hub_name}/{hubitat_device_name}/lock/set"  # e.g. "homie/home-1/shed-lock/lock/set"
+                topic_payload = "true"
+                self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
+            elif action.deviceAction == indigo.kDeviceAction.Unlock:
+                self.logger.info(f"sending \"Unlock\" to \"{dev.name}\"")
+                topic = f"{MQTT_ROOT_TOPIC}/{hubitat_hub_name}/{hubitat_device_name}/lock/set"  # e.g. "homie/home-1/shed-lock/lock/set"
+                topic_payload = "false"
+                self.publish_hubitat_topic(mqtt_filter_key, hubitat_hub_name, topic, topic_payload)
+
             # ##### TURN ON ######
-            if action.deviceAction == indigo.kDeviceAction.TurnOn:
+            elif action.deviceAction == indigo.kDeviceAction.TurnOn:
                 if dev.deviceTypeId == "dimmer" or dev.deviceTypeId == "blind" or dev.deviceTypeId == "outlet" or dev.deviceTypeId == "tasmotaOutlet":
                     positive, negative = oooc(dev)
                     self.logger.info(f"sending \"{positive}\" to \"{dev.name}\"")
@@ -715,6 +727,8 @@ class Plugin(indigo.PluginBase):
             elif type_id == "humidity":
                 pass
             elif type_id == "illuminance":
+                pass
+            elif type_id == "lock":
                 pass
             elif type_id == "motionSensor":
                 pass
@@ -2393,6 +2407,7 @@ class Plugin(indigo.PluginBase):
 
     def refreshUiCallback(self, valuesDict, typeId="", devId=None):  # noqa [parameter value is not used]
         errors_dict = indigo.Dict()
+        values_dict_normal = dict(valuesDict)
         try:
             if typeId == "hubitatElevationHub":
                 return valuesDict, errors_dict
@@ -2432,6 +2447,9 @@ class Plugin(indigo.PluginBase):
             elif typeId == "illuminanceSensor":
                 usp_field_id_check_1 = "uspIlluminanceIndigo"
                 valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
+            elif typeId == "lock":
+                usp_field_id_check_1 = "uspLockIndigo"
+                valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
             elif typeId == "motionSensor":
                 usp_field_id_check_1 = "uspMotionIndigo"
                 valuesDict[usp_field_id_check_1] = INDIGO_PRIMARY_DEVICE_MAIN_UI_STATE
@@ -2457,7 +2475,7 @@ class Plugin(indigo.PluginBase):
                 valuesDict[usp_field_id_check_2] = INDIGO_PRIMARY_DEVICE_ADDITIONAL_STATE
 
             for usp_field_id in ("uspAccelerationIndigo", "uspButtonIndigo", "uspPositionIndigo", "uspContactIndigo", "uspDimmerIndigo",
-                                 "uspEnergyIndigo", "uspHumidityIndigo", "uspIlluminanceIndigo", "uspMotionIndigo",
+                                 "uspEnergyIndigo", "uspHumidityIndigo", "uspIlluminanceIndigo", "uspLockIndigo", "uspMotionIndigo",
                                  "uspOnOffIndigo", "uspPowerIndigo", "uspPresenceIndigo", "uspPressureIndigo", "uspRadarIndigo",
                                  "uspTemperatureIndigo", "uspSetpointIndigo", "uspValveIndigo", "uspVoltageIndigo"):
                 if (usp_field_id != usp_field_id_check_1 and usp_field_id != usp_field_id_check_2 and
@@ -2480,7 +2498,7 @@ class Plugin(indigo.PluginBase):
             try:
                 requirements.requirements_check(self.globals[K_PLUGIN_INFO][K_PLUGIN_ID])
             except ImportError as exception_error:
-                self.logger.error(f"PLUGIN STOPPED: {exception_error}")
+                self.logger.critical(f"PLUGIN STOPPED: {exception_error}")
                 self.do_not_start_stop_devices = True
                 self.stopPlugin()
 
@@ -2612,6 +2630,7 @@ class Plugin(indigo.PluginBase):
 
     def validateDeviceConfigUi(self, values_dict=None, type_id="", dev_id=0):
         try:
+            values_dict_normal = dict(values_dict)
             error_dict = indigo.Dict()
 
             if type_id == "mqttBroker":
@@ -2811,6 +2830,53 @@ class Plugin(indigo.PluginBase):
                 else:
                     values_dict["SupportsSensorValue"] = True
 
+            elif type_id == "lock":
+                # Lcck validation and option settings
+                if not values_dict.get("uspLock", False):
+                    error_message = "An Indigo Lock device requires an association to the Hubitat 'lock' property"
+                    error_dict['uspLock'] = error_message
+                    error_dict["showAlertText"] = error_message
+                else:
+                    valid_seconds = False
+                    try:
+                        int(values_dict.get("uspLockDelayBeforeLocking", 0))
+                        valid_seconds = True
+                    except ValueError:
+                        error_message = "'Lock - Delay Before Locking' must be a number of seconds."
+                        error_dict['uspLockDelayBeforeLocking'] = error_message
+                        error_dict["showAlertText"] = error_message
+                    if valid_seconds:
+                        valid_seconds = False
+                        try:
+                            int(values_dict.get("uspLockDurationBeforeUnlocking", 0))
+                            valid_seconds = True
+                        except ValueError:
+                            error_message = "'Lock - Duration Before Unlocking' must be a number of seconds."
+                            error_dict['uspLockDurationBeforeUnlocking'] = error_message
+                            error_dict["showAlertText"] = error_message
+                        if valid_seconds:
+                            valid_seconds = False
+                            try:
+                                int(values_dict.get("uspUnlockDelayBeforeUnlocking", 0))
+                                valid_seconds = True
+                            except ValueError:
+                                error_message = "'Unlock - Delay Before Unlocking' must be a number of seconds."
+                                error_dict['uspUnlockDelayBeforeUnlocking'] = error_message
+                                error_dict["showAlertText"] = error_message
+                            if valid_seconds:
+                                valid_seconds = False
+                                try:
+                                    int(values_dict.get("uspUnlockDurationBeforeLocking", 0))
+                                    valid_seconds = True
+                                except ValueError:
+                                    error_message = "'Unlock - Duration Before Locking' must be a number of seconds."
+                                    error_dict['uspUnlockDurationBeforeLocking'] = error_message
+                                    error_dict["showAlertText"] = error_message
+                    if valid_seconds:
+                        values_dict["IsLockSubType"] = True
+                        if bool(values_dict.get("hubitatPropertyRefresh", False)):
+                            values_dict["SupportsStatusRequest"] = True
+
             elif type_id == "motionSensor":
                 # Motion Sensor validation and option settings
                 if not values_dict.get("uspMotion", False):
@@ -2828,8 +2894,8 @@ class Plugin(indigo.PluginBase):
                     error_dict['uspMotion'] = error_message
                     error_dict["showAlertText"] = error_message
                 else:
-                    values_dict["SupportsOnState"] = True
-                    values_dict["allowOnStateChange"] = False
+                        values_dict["SupportsOnState"] = True
+                        values_dict["allowOnStateChange"] = False
 
             elif type_id == "outlet":
                 # Outlet (Socket) validation and option settings
@@ -2966,6 +3032,7 @@ class Plugin(indigo.PluginBase):
                     (filter == "dimmer" and typeId == "dimmer") or
                     (filter == "humiditySensor" and typeId == "humiditySensor") or
                     (filter == "illuminanceSensor" and typeId == "illuminanceSensor") or
+                    (filter == "lock" and typeId == "lock") or
                     (filter == "motionSensor" and typeId == "motionSensor") or
                     (filter == "motionSensor" and typeId == "multiSensor") or
                     (filter == "onoff" and typeId == "outlet") or
@@ -3219,6 +3286,12 @@ class Plugin(indigo.PluginBase):
                                 valuesDict["hubitatPropertyIlluminance"] = True
                             else:
                                 valuesDict["hubitatPropertyIlluminance"] = False
+
+                        elif hubitat_device_property == "lock":
+                            if typeId in HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES[hubitat_device_property]:
+                                valuesDict["hubitatPropertyLock"] = True
+                            else:
+                                valuesDict["hubitatPropertyLock"] = False
 
                         elif hubitat_device_property == "motion":
                             if typeId in HE_PROPERTIES_SUPPORTED_BY_DEVICE_TYPES[hubitat_device_property]:
@@ -3498,6 +3571,10 @@ class Plugin(indigo.PluginBase):
             elif dev.deviceTypeId == "illuminanceSensor" or dev.deviceTypeId == "illumianceSensorSecondary":
                 if dev.subType != indigo.kSensorDeviceSubType.Illuminance:
                     dev.subType = indigo.kSensorDeviceSubType.Illuminance
+                    dev.replaceOnServer()
+            elif dev.deviceTypeId == "lock":
+                if dev.subType != indigo.kRelayDeviceSubType.Lock:
+                    dev.subType = indigo.kRelayDeviceSubType.Lock
                     dev.replaceOnServer()
             elif dev.deviceTypeId == "motionSensor" or dev.deviceTypeId == "multiSensor" or dev.deviceTypeId == "motionSensorSecondary":
                 if dev.subType != indigo.kSensorDeviceSubType.Motion:

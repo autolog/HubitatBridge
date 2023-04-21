@@ -639,6 +639,28 @@ class ThreadHubHandler(threading.Thread):
                             if not bool(dev.pluginProps.get("hideIlluminanceBroadcast", False)):
                                 self.hubHandlerLogger.info(f"received \"{broadcast_device_name}\" illuminance sensor \"{uiValue}\" event")
 
+            # Check for lock
+            elif topics_list[3] == "lock":
+                with self.globals[LOCK_HE_LINKED_INDIGO_DEVICES]:
+                    for dev_id in self.globals[HE_HUBS][hub_name][HE_DEVICES][hubitat_device_name][HE_LINKED_INDIGO_DEVICES]:
+                        dev = indigo.devices[dev_id]
+                        if dev.pluginProps.get("uspLock", False):
+                            if len(topics_list) != 4:
+                                return
+                            if payload not in ["true", "false"]:
+                                return
+                            if payload == "true":
+                                payload_ui = "lock"  # Force to Lock
+                                dev.updateStateOnServer(key="onOffState", value=True)
+                                # dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+                            else:
+                                # payload == "false"
+                                payload_ui = "unlock"  # Force to Unlock
+                                dev.updateStateOnServer(key="onOffState", value=False)
+                                # dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff
+                            if not bool(dev.pluginProps.get("hideLockBroadcast", False)):
+                                self.hubHandlerLogger.info(f"received \"{dev.name}\" lock, \"{payload_ui}\" event")
+
             # Check for Motion
             elif topics_list[3] == "motion":
                 if len(topics_list) == 5 and topics_list[4] == "status":
