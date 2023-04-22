@@ -144,10 +144,21 @@ class ThreadMqttHandler(threading.Thread):
                                          bind_address="")
                 mqtt_connected = True
             except Exception as exception_error:
-                # TODO: Make this more user friendly!
-                self.mqttHandlerLogger.error(
-                    f"Plugin is unable to connect to MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}. Is it running? Connection error reported as '{exception_error}'")
-                self.exception_handler(exception_error, True)  # Log error and display failing statement
+                # DONE: Make this more user friendly!
+                error_intercepted = False
+                base_error_message = (f"Plugin is unable to connect to the MQTT Broker at "
+                                      f"{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}."
+                                      f" Is it running?")
+                try:
+                    errno = exception_error.errno  # noqa
+                    strerror = exception_error.strerror  # noqa
+                    if errno == 61:
+                        self.mqttHandlerLogger.error(f"{base_error_message} Error: {strerror}.")
+                        error_intercepted = True
+                except:
+                    pass
+                if not error_intercepted:
+                    self.exception_handler(f"{base_error_message} Connection error reported as: {exception_error}", False)  # Log error
 
             if mqtt_connected:
                 self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_CLIENT] = self.mqtt_client
@@ -221,7 +232,7 @@ class ThreadMqttHandler(threading.Thread):
 
                 self.bad_disconnection = True
             else:
-                self.mqttHandlerLogger.info(f"Disconnected from MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}")
+                self.mqttHandlerLogger.warning(f"Disconnected from MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}")
                 self.mqtt_client.loop_stop()
             try:
                 for dev in indigo.devices.iter("self"):
@@ -244,7 +255,7 @@ class ThreadMqttHandler(threading.Thread):
         try:
             self.mqtt_client.disconnect()
             self.mqtt_client.loop_stop()
-            self.mqttHandlerLogger.info(f"Disconnected from MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}")
+            self.mqttHandlerLogger.warning(f"Disconnected from MQTT Broker at {self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_IP]}:{self.globals[MQTT][self.mqtt_broker_dev_id][MQTT_PORT]}")
         except Exception as exception_error:
             self.exception_handler(exception_error, True)  # Log error and display failing statement
 
