@@ -1,2 +1,1 @@
-cryptography==41.0.1
 paho-mqtt==1.6.1

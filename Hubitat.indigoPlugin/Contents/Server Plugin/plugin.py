@@ -8,28 +8,17 @@
 # noinspection PyUnresolvedReferences
 # ============================== Native Imports ===============================
 import base64
-
-try:
-    from cryptography.fernet import Fernet  # noqa
-    from cryptography.hazmat.primitives import hashes  # noqa
-    from cryptography.hazmat.primitives import hashes  # noqa
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC  # noqa
-except ImportError:
-    pass
-
+from cryptography.fernet import Fernet  # noqa
+from cryptography.hazmat.primitives import hashes  # noqa
+from cryptography.hazmat.primitives import hashes  # noqa
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC  # noqa
 import colorsys
 from datetime import datetime
 import logging
 import os
 import platform
-try:
-    # Python 3
-    import queue
-except ImportError:
-    # Python 2
-    import Queue as queue
+import queue
 import re
-import requirements
 import socket
 import sys
 import threading
@@ -42,6 +31,12 @@ try:
     import indigo
 except ImportError:
     pass
+
+import_errors = []
+try:
+    import paho.mqtt.client as mqtt
+except ImportError:
+    import_errors.append("paho-mqtt")
 
 from constants import *
 from hubHandler import ThreadHubHandler
@@ -99,12 +94,12 @@ class Plugin(indigo.PluginBase):
 
         self.do_not_start_stop_devices = False
 
-        logging.addLevelName(K_LOG_LEVEL_TOPIC, "topic")
+        logging.addLevelName(LOG_LEVEL_TOPIC, "topic")
 
         def topic(self, message, *args, **kws):  # noqa [Shadowing names from outer scope = self]
-            # if self.isEnabledFor(K_LOG_LEVEL_TOPIC):
+            # if self.isEnabledFor(LOG_LEVEL_TOPIC):
             # Yes, logger takes its '*args' as 'args'.
-            self.log(K_LOG_LEVEL_TOPIC, message, *args, **kws)
+            self.log(LOG_LEVEL_TOPIC, message, *args, **kws)
 
         logging.Logger.topic = topic
 
@@ -120,18 +115,18 @@ class Plugin(indigo.PluginBase):
         self.globals[LOCALIP] = socket.gethostbyname('localhost')
 
         # Initialise Indigo plugin info
-        self.globals[K_PLUGIN_INFO] = {}
-        self.globals[K_PLUGIN_INFO][K_PLUGIN_ID] = plugin_id
-        self.globals[K_PLUGIN_INFO][K_PLUGIN_DISPLAY_NAME] = plugin_display_name
-        self.globals[K_PLUGIN_INFO][K_PLUGIN_VERSION] = plugin_version
-        self.globals[K_PLUGIN_INFO][K_PATH] = indigo.server.getInstallFolderPath()
-        self.globals[K_PLUGIN_INFO][K_API_VERSION] = indigo.server.apiVersion
-        self.globals[K_PLUGIN_INFO][K_ADDRESS] = indigo.server.address
+        self.globals[PLUGIN_INFO] = {}
+        self.globals[PLUGIN_INFO][PLUGIN_ID] = plugin_id
+        self.globals[PLUGIN_INFO][PLUGIN_DISPLAY_NAME] = plugin_display_name
+        self.globals[PLUGIN_INFO][PLUGIN_VERSION] = plugin_version
+        self.globals[PLUGIN_INFO][PATH] = indigo.server.getInstallFolderPath()
+        self.globals[PLUGIN_INFO][API_VERSION] = indigo.server.apiVersion
+        self.globals[PLUGIN_INFO][ADDRESS] = indigo.server.address
 
         log_format = logging.Formatter("%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s", datefmt="%Y-%m-%d %H:%M:%S")
         self.plugin_file_handler.setFormatter(log_format)
-        self.plugin_file_handler.setLevel(K_LOG_LEVEL_INFO)  # Logging Level for plugin log file
-        self.indigo_log_handler.setLevel(K_LOG_LEVEL_INFO)   # Logging level for Indigo Event Log
+        self.plugin_file_handler.setLevel(LOG_LEVEL_INFO)  # Logging Level for plugin log file
+        self.indigo_log_handler.setLevel(LOG_LEVEL_INFO)   # Logging level for Indigo Event Log
 
         self.logger = logging.getLogger("Plugin.Hubitat")
 
@@ -175,9 +170,9 @@ class Plugin(indigo.PluginBase):
             def plugin_information_message():
                 startup_message_ui = "Plugin Information:\n"
                 startup_message_ui += f"{'':={'^'}80}\n"
-                startup_message_ui += f"{'Plugin Name:':<30} {self.globals[K_PLUGIN_INFO][K_PLUGIN_DISPLAY_NAME]}\n"
-                startup_message_ui += f"{'Plugin Version:':<30} {self.globals[K_PLUGIN_INFO][K_PLUGIN_VERSION]}\n"
-                startup_message_ui += f"{'Plugin ID:':<30} {self.globals[K_PLUGIN_INFO][K_PLUGIN_ID]}\n"
+                startup_message_ui += f"{'Plugin Name:':<30} {self.globals[PLUGIN_INFO][PLUGIN_DISPLAY_NAME]}\n"
+                startup_message_ui += f"{'Plugin Version:':<30} {self.globals[PLUGIN_INFO][PLUGIN_VERSION]}\n"
+                startup_message_ui += f"{'Plugin ID:':<30} {self.globals[PLUGIN_INFO][PLUGIN_ID]}\n"
                 startup_message_ui += f"{'Indigo Version:':<30} {indigo.server.version}\n"
                 startup_message_ui += f"{'Indigo License:':<30} {indigo.server.licenseStatus}\n"
                 startup_message_ui += f"{'Indigo API Version:':<30} {indigo.server.apiVersion}\n"
@@ -825,16 +820,16 @@ class Plugin(indigo.PluginBase):
             self.globals[COLOR_DEBUG] = bool(values_dict.get("colorDebug", False))
 
             # Get required Event Log and Plugin Log logging levels
-            plugin_log_level = int(values_dict.get("pluginLogLevel", K_LOG_LEVEL_INFO))
-            event_log_level = int(values_dict.get("eventLogLevel", K_LOG_LEVEL_INFO))
+            plugin_log_level = int(values_dict.get("pluginLogLevel", LOG_LEVEL_INFO))
+            event_log_level = int(values_dict.get("eventLogLevel", LOG_LEVEL_INFO))
 
             # Ensure following logging level messages are output
-            self.indigo_log_handler.setLevel(K_LOG_LEVEL_INFO)
-            self.plugin_file_handler.setLevel(K_LOG_LEVEL_INFO)
+            self.indigo_log_handler.setLevel(LOG_LEVEL_INFO)
+            self.plugin_file_handler.setLevel(LOG_LEVEL_INFO)
 
             # Output required logging levels and TP Message Monitoring requirement to logs
-            self.logger.info(f"Logging to Indigo Event Log at the '{K_LOG_LEVEL_TRANSLATION[event_log_level]}' level")
-            self.logger.info(f"Logging to Plugin Event Log at the '{K_LOG_LEVEL_TRANSLATION[plugin_log_level]}' level")
+            self.logger.info(f"Logging to Indigo Event Log at the '{LOG_LEVEL_TRANSLATION[event_log_level]}' level")
+            self.logger.info(f"Logging to Plugin Event Log at the '{LOG_LEVEL_TRANSLATION[plugin_log_level]}' level")
 
             # Now set required logging levels
             self.indigo_log_handler.setLevel(event_log_level)
@@ -1072,11 +1067,11 @@ class Plugin(indigo.PluginBase):
             self.publish_export_topic("dev-root", None, topic, payload)
 
             topic = f"homie/{indigo_root_topic_id}/$fw/plugin"
-            payload = f"{self.globals[K_PLUGIN_INFO][K_PLUGIN_DISPLAY_NAME]}"
+            payload = f"{self.globals[PLUGIN_INFO][PLUGIN_DISPLAY_NAME]}"
             self.publish_export_topic("dev-root", None, topic, payload)
 
             topic = f"homie/{indigo_root_topic_id}/$fw/version"
-            payload = f"{self.globals[K_PLUGIN_INFO][K_PLUGIN_VERSION]}"
+            payload = f"{self.globals[PLUGIN_INFO][PLUGIN_VERSION]}"
             self.publish_export_topic("dev-root", None, topic, payload)
 
             topic = f"homie/{indigo_root_topic_id}/$name"
@@ -2495,12 +2490,23 @@ class Plugin(indigo.PluginBase):
 
     def startup(self):
         try:
-            try:
-                requirements.requirements_check(self.globals[K_PLUGIN_INFO][K_PLUGIN_ID])
-            except ImportError as exception_error:
-                self.logger.critical(f"PLUGIN STOPPED: {exception_error}")
-                self.do_not_start_stop_devices = True
-                self.stopPlugin()
+            self.do_not_start_stop_devices = False
+            if len(import_errors):
+                pip_version = f'pip{sys.version_info.major}.{sys.version_info.minor}'
+                plugin_info = indigo.server.getPlugin(self.globals[PLUGIN_INFO][PLUGIN_ID])
+                packages_path_folder_name = f"{plugin_info.pluginFolderPath}/Contents/Packages"
+                requirements_path_file_name = f"{plugin_info.pluginFolderPath}/Contents/Server Plugin/requirements.txt"
+
+                msg = f"One or more required Python libraries missing. Run the following command in a Terminal window to install them, then reload the plugin.\n\n"
+                msg += f'{pip_version} install -r "{requirements_path_file_name}" -t  "{packages_path_folder_name}"\n'
+                self.logger.critical(msg)
+
+                if float(self.globals[PLUGIN_INFO][API_VERSION]) >= 3.4:
+                    return "Plugin startup cancelled due to missing Python libraries."
+                else:
+                    self.logger.critical(f"Plugin startup cancelled due to missing Python libraries.")
+                    self.do_not_start_stop_devices = True
+                    self.stopPlugin()
 
             indigo.devices.subscribeToChanges()
 
