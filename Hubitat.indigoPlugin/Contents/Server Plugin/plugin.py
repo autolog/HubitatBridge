@@ -92,8 +92,6 @@ class Plugin(indigo.PluginBase):
     def __init__(self, plugin_id, plugin_display_name, plugin_version, plugin_prefs):
         super(Plugin, self).__init__(plugin_id, plugin_display_name, plugin_version, plugin_prefs)
 
-        self.do_not_start_stop_devices = False
-
         logging.addLevelName(LOG_LEVEL_TOPIC, "topic")
 
         def topic(self, message, *args, **kws):  # noqa [Shadowing names from outer scope = self]
@@ -941,9 +939,6 @@ class Plugin(indigo.PluginBase):
 
     def deviceStartComm(self, dev):
         try:
-            if self.do_not_start_stop_devices:  # This is set on if Package requirements listed in requirements.txt are not met
-                return
-
             dev.stateListOrDisplayStateIdChanged()  # Ensure that latest devices.xml is being used
 
             if not dev.enabled:
@@ -1682,11 +1677,6 @@ class Plugin(indigo.PluginBase):
 
     def deviceStopComm(self, dev):
         try:
-            if self.do_not_start_stop_devices:  # This is set on if Package requirements listed in requirements.txt are not met
-                return
-
-            # self.logger.info(f"Device '{dev.name}' Stopped")
-
             if dev.deviceTypeId == "mqttBroker":
                 if MQTT_EVENT in self.globals[MQTT][dev.id]:
                     self.globals[MQTT][dev.id][MQTT_EVENT].set()  # Stop the MQTT Client
@@ -2490,23 +2480,11 @@ class Plugin(indigo.PluginBase):
 
     def startup(self):
         try:
-            self.do_not_start_stop_devices = False
             if len(import_errors):
-                pip_version = f'pip{sys.version_info.major}.{sys.version_info.minor}'
-                plugin_info = indigo.server.getPlugin(self.globals[PLUGIN_INFO][PLUGIN_ID])
-                packages_path_folder_name = f"{plugin_info.pluginFolderPath}/Contents/Packages"
-                requirements_path_file_name = f"{plugin_info.pluginFolderPath}/Contents/Server Plugin/requirements.txt"
-
-                msg = f"One or more required Python libraries missing. Run the following command in a Terminal window to install them, then reload the plugin.\n\n"
-                msg += f'{pip_version} install -r "{requirements_path_file_name}" -t  "{packages_path_folder_name}"\n'
-                self.logger.critical(msg)
-
-                if float(self.globals[PLUGIN_INFO][API_VERSION]) >= 3.4:
-                    return "Plugin startup cancelled due to missing Python libraries."
-                else:
-                    self.logger.critical(f"Plugin startup cancelled due to missing Python libraries.")
-                    self.do_not_start_stop_devices = True
-                    self.stopPlugin()
+                stop_message = "Plugin startup cancelled due to one or more required plugin Python libraries missing:\n"
+                for package in import_errors:
+                    stop_message = f"{stop_message}      - {package}\n"
+                return stop_message
 
             indigo.devices.subscribeToChanges()
 
